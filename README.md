@@ -40,8 +40,9 @@ flowchart TB
 **Deployment Approach**
 
 The plan involves containerizing the application using Docker and orchestrating it with Kubernetes. A Helm chart defines the necessary resources:
-A Deployment for running the Flask-based service.
-A Service to expose the application within the cluster.
-A PersistentVolumeClaim (PVC) for storing the SQLite database and uploaded documents.
-A CronJob to reset user credits daily.
-After building and pushing the Docker image to a container registry, the Helm chart can be installed on a cluster (e.g., Minikube). The application becomes accessible through the configured service endpoint, and Swagger UI is available at /apidocs.
+
+- A Deployment for running the Flask-based service.
+- A Service to expose the application within the cluster.
+- A PersistentVolumeClaim (PVC) for storing the SQLite database and uploaded documents.
+- A CronJob to reset user credits daily.
+- After building and pushing the Docker image to a container registry, the Helm chart can be installed on a cluster (e.g., Minikube). The application becomes accessible through the configured service endpoint, and Swagger UI is available at /apidocs.
