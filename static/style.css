@@ -22,10 +22,6 @@ body {
     margin: 0 0 15px 0;
   }
   
-  form {
-    margin: 15px 0;
-  }
-  
   input, button {
     margin: 5px 0;
     padding: 10px;
@@ -42,5 +38,11 @@ body {
   
   button:hover {
     background: #0056b3;
+  }
+  
+  nav a {
+    margin-right: 15px;
+    color: #fff;
+    text-decoration: none;
   }
   
