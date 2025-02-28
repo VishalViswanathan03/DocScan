@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, session, render_template, redirect, u
 from flasgger import Swagger
 
 app = Flask(__name__)
-app.secret_key = 'your_super_secret_key'  # Replace with a strong secret key
+app.secret_key = 'your_super_secret_key'
 
 swagger = Swagger(app)
 
