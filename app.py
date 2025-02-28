@@ -1,18 +1,17 @@
-from flask import Flask, request, render_template, session, redirect, url_for, jsonify
+from flask import Flask, request, jsonify, session
 from flasgger import Swagger
+from utils.db import init_db, get_db
 from utils.auth import register_user, login_user, get_user_profile
 from utils.scanner import scan_document, get_matches
 from utils.credits import request_credits
 from utils.analytics import get_admin_analytics
-from utils.db import init_db
 
 app = Flask(__name__)
 app.secret_key = 'replace_with_strong_secret_key'
 
-# Initialize Swagger
-swagger = Swagger(app)
+swagger = Swagger(app)  # Enable Swagger docs at /apidocs
 
-# Initialize DB on startup
+# Initialize SQLite DB on startup
 init_db()
 
 @app.route('/')
@@ -22,10 +21,13 @@ def index():
     ---
     responses:
       200:
-        description: Renders the home page (index.html)
+        description: Renders index.html
     """
     return render_template('index.html')
 
+# --------------------------------
+# AUTH: Register, Login, Logout
+# --------------------------------
 @app.route('/auth/register', methods=['POST'])
 def register():
     """
@@ -42,12 +44,12 @@ def register():
         required: true
     responses:
       201:
-        description: User created
+        description: Registration success
       400:
         description: Registration error
     """
-    data = request.form
-    result, status = register_user(data)
+    form_data = request.form
+    result, status = register_user(form_data)
     if status == 201:
         return jsonify({"success": True, "message": "Registration successful"}), 201
     return jsonify(result), status
@@ -68,14 +70,14 @@ def login():
         required: true
     responses:
       200:
-        description: Login successful
+        description: Login success
       401:
         description: Invalid credentials
     """
-    data = request.form
-    result, status = login_user(data)
+    form_data = request.form
+    result, status = login_user(form_data)
     if status == 200:
-        session['username'] = data.get('username')
+        session['username'] = form_data.get('username')
         session['role'] = result.get('role', 'user')
         return jsonify({"success": True, "role": session['role']}), 200
     return jsonify(result), status
@@ -87,19 +89,22 @@ def logout():
     ---
     responses:
       200:
-        description: Logout successful
+        description: Logout success
     """
     session.clear()
     return jsonify({"success": True, "message": "Logged out"}), 200
 
+# --------------------------------
+# USER/UPLOAD: Profile, Upload
+# --------------------------------
 @app.route('/user/profile', methods=['GET'])
 def profile():
     """
-    User Profile
+    Get User Profile
     ---
     responses:
       200:
-        description: Returns user profile (credits, username)
+        description: Returns user profile
       401:
         description: Not logged in
     """
@@ -120,7 +125,7 @@ def upload():
         required: true
     responses:
       200:
-        description: Returns JSON with upload result
+        description: Document upload result
       401:
         description: Not logged in
     """
@@ -160,7 +165,7 @@ def credits_request():
     ---
     responses:
       200:
-        description: Returns JSON with success message
+        description: Credit request success
       401:
         description: Not logged in
     """
@@ -169,6 +174,53 @@ def credits_request():
     result = request_credits(session['username'])
     return jsonify(result)
 
+
+
+@app.route('/make_admin/<username>', methods=['POST'])
+def make_admin(username):
+    """
+    Promote user to admin role, requiring a secret code in the request body.
+    ---
+    parameters:
+      - name: username
+        in: path
+        type: string
+        required: true
+      - name: secret_code
+        in: formData
+        type: string
+        required: true
+    responses:
+      200:
+        description: User is now admin
+      401:
+        description: Invalid or missing secret code
+      404:
+        description: User not found
+    """
+    # Replace 'my_super_secret_code' with something more secure
+    required_code = 'my_super_secret_code'
+
+    # The form data must include "secret_code"
+    provided_code = request.form.get('secret_code')
+    if provided_code != required_code:
+        return jsonify({"error": "Unauthorized - invalid code"}), 401
+
+    # Check if user exists
+    conn = get_db()
+    cursor = conn.execute("SELECT username FROM users WHERE username=?", (username,))
+    row = cursor.fetchone()
+    if not row:
+        return jsonify({"error": f"User '{username}' not found"}), 404
+
+    # Update role
+    conn.execute("UPDATE users SET role='admin' WHERE username=?", (username,))
+    conn.commit()
+    return jsonify({"message": f"User '{username}' is now admin"}), 200
+
+# --------------------------------
+# ADMIN
+# --------------------------------
 @app.route('/admin/analytics', methods=['GET'])
 def admin_analytics():
     """
@@ -176,30 +228,36 @@ def admin_analytics():
     ---
     responses:
       200:
-        description: Returns admin analytics
+        description: Admin analytics data
+      401:
+        description: Not logged in
       403:
         description: Unauthorized
     """
-    if 'role' not in session or session['role'] != 'admin':
-        return jsonify({"error": "Unauthorized"}), 403
-    analytics = get_admin_analytics()
-    return jsonify(analytics), 200
+    # Check if there's a user logged in
+    if 'username' not in session:
+        return jsonify({"error": "Not logged in"}), 401
 
+    # Retrieve user info from DB
+    user_info = get_user_profile(session['username'])
+    if not user_info or user_info.get('error'):
+        return jsonify({"error": "User not found"}), 404
+
+    # Ensure the user is actually admin
+    if user_info.get('role') != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+
+    # If we get here, user is admin
+    data = get_admin_analytics()
+    return jsonify(data), 200
+
+
+# --------------------------------
+# TEMPLATES
+# --------------------------------
 @app.route('/page/<name>')
-def pages(name):
-    """
-    Render HTML pages
-    ---
-    parameters:
-      - name: name
-        in: path
-        type: string
-        required: true
-    responses:
-      200:
-        description: Renders the requested HTML template
-    """
-    # For example: /page/login -> templates/login.html
+def serve_page(name):
+    """Renders the requested page from templates."""
     return render_template(f"{name}.html")
 
 if __name__ == '__main__':
