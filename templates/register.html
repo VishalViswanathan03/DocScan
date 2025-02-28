@@ -2,12 +2,43 @@
 {% block content %}
 <h2>Register</h2>
 <form id="registerForm">
-  <input type="text" name="username" placeholder="Username" required>
-  <input type="password" name="password" placeholder="Password" required>
+  <label>Username</label>
+  <input type="text" name="username" required>
+
+  <label>Password</label>
+  <input type="password" name="password" required>
+
+  <label>Phone (optional)</label>
+  <input type="text" name="phone">
+
+  <label>First Name (optional)</label>
+  <input type="text" name="first_name">
+
+  <label>Last Name (optional)</label>
+  <input type="text" name="last_name">
+
+  <label>Date of Birth (optional)</label>
+  <input type="date" name="dob">
+
   <button type="submit">Register</button>
 </form>
 
 <script>
-document.getElementById('registerForm').addEventListener('submit', handleRegister);
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const response = await fetch('/auth/register', {
+    method: 'POST',
+    body: formData
+  });
+  const result = await response.json();
+  if (result.message) {
+    alert(result.message);
+    window.location.href = '/page/login';
+  } else {
+    alert(result.error || 'Registration failed');
+  }
+});
 </script>
 {% endblock %}
+    
