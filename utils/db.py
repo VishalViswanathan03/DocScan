@@ -16,7 +16,6 @@ def init_db():
     conn = get_db()
     cursor = conn.cursor()
 
-    # USERS TABLE with new columns
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
@@ -30,7 +29,7 @@ def init_db():
         )
     ''')
 
-    # DOCUMENTS TABLE
+    # DOCUMENTS table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +40,7 @@ def init_db():
         )
     ''')
 
-    # CREDIT REQUESTS TABLE
+    # CREDIT REQUESTS table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS credit_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +50,7 @@ def init_db():
         )
     ''')
 
-    # SCAN RESULTS TABLE (for storing match logs, if you use it)
+    # SCAN RESULTS table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS scan_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

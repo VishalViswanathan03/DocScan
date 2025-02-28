@@ -8,6 +8,7 @@ from utils.auth import (
 from utils.scanner import scan_document, get_matches
 from utils.credits import request_credits
 from utils.analytics import get_admin_analytics
+import debugpy
 
 app = Flask(__name__)
 app.secret_key = 'replace_with_strong_secret_key'
@@ -128,42 +129,6 @@ def profile():
     user_info = get_user_profile(session['username'])
     return jsonify({"profile": user_info})
 
-@app.route('/user/update', methods=['POST'])
-def user_update():
-    """
-    Update User Info
-    ---
-    parameters:
-      - name: phone
-        in: formData
-        type: string
-        required: false
-      - name: first_name
-        in: formData
-        type: string
-        required: false
-      - name: last_name
-        in: formData
-        type: string
-        required: false
-      - name: dob
-        in: formData
-        type: string
-        required: false
-    responses:
-      200:
-        description: User info updated successfully
-      401:
-        description: Not logged in
-      404:
-        description: User not found
-    """
-    if 'username' not in session:
-        return jsonify({"error": "Not logged in"}), 401
-    data = request.form
-    result, status = update_user_info(session['username'], data)
-    return jsonify(result), status
-
 @app.route('/user/change_password', methods=['POST'])
 def user_change_password():
     """
@@ -193,7 +158,7 @@ def user_change_password():
     return jsonify(result), status
 
 @app.route('/user/update', methods=['PUT'])
-def user_update():
+def user_update_put():
     """
     Update user info (PUT).
     ---
@@ -216,7 +181,7 @@ def user_update():
       401:
         description: Not logged in
       404:
-        description: User not found
+        description: User not found     
     """
     if 'username' not in session:
         return jsonify({"error": "Not logged in"}), 401
