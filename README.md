@@ -15,7 +15,7 @@ ScanDoc is a comprehensive full stack web application that Scans Documents for s
 | **6** | Matched documents and results are sent back to frontend. |
 | **7** | Admin can log in to view analytics and approve credit requests. |
 
-## Architecture Flowchart
+## Architecture
 
 ```mermaid
 flowchart TB
