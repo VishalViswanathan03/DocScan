@@ -19,20 +19,20 @@ def index():
         return redirect(url_for('profile'))
     return render_template('index.html')
 
-@app.route('/api/example', methods=['GET'])
+@app.route('/api/test', methods=['GET'])
 def api_example():
     """
-    Example API endpoint.
+    Test API endpoint.
     ---
     responses:
       200:
-        description: Returns a simple JSON message.
+        description: Test api endpoint
         schema:
           type: object
           properties:
             message:
               type: string
-              example: Hello, World!
+              message: Testing blah blah!
     """
     return jsonify({"message": "Hello, World!"})
 
