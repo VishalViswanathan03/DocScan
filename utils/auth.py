@@ -1,6 +1,8 @@
 import hashlib
 from utils.db import get_db
 
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD = "Admin@12345!"
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
@@ -14,7 +16,16 @@ def register_user(data):
     first_name = data.get('first_name') or None
     last_name = data.get('last_name') or None
     dob = data.get('dob') or None
-
+    if not username or not password:
+        return {"error": "Username and password are required."}, 400
+    if username == ADMIN_USERNAME:
+        if password != ADMIN_PASSWORD:
+            return {"error": "Invalid admin password."}, 400
+        role = "admin"
+        hashed_pw = hash_password(password)
+    else:
+        role = "user"
+        hashed_pw = hash_password(password)
     conn = get_db()
     try:
         conn.execute('''
@@ -22,8 +33,8 @@ def register_user(data):
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             username,
-            hash_password(password),
-            'user',
+            hashed_pw,
+            role,
             20,
             phone,
             first_name,
