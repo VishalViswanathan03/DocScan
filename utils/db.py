@@ -5,30 +5,32 @@ DB_DIR = 'data'
 DB_PATH = os.path.join(DB_DIR, 'scanner.db')
 
 def get_db():
- 
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
 
 def init_db():
- 
     if not os.path.exists(DB_DIR):
         os.makedirs(DB_DIR)
 
     conn = get_db()
     cursor = conn.cursor()
 
-    # 1) Users table
+    # USERS TABLE with new columns
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
             password TEXT,
             role TEXT,
-            credits INTEGER DEFAULT 20
+            credits INTEGER DEFAULT 20,
+            phone TEXT,
+            first_name TEXT,
+            last_name TEXT,
+            dob TEXT
         )
     ''')
 
-    # 2) Documents table
+    # DOCUMENTS TABLE
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -39,7 +41,7 @@ def init_db():
         )
     ''')
 
-    # 3) Credit Requests table
+    # CREDIT REQUESTS TABLE
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS credit_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,7 +51,7 @@ def init_db():
         )
     ''')
 
-    # 4) Scan Results table (to store match details)
+    # SCAN RESULTS TABLE (for storing match logs, if you use it)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS scan_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

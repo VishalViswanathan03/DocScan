@@ -1,7 +1,10 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, render_template, session, jsonify
 from flasgger import Swagger
-from utils.db import init_db, get_db
-from utils.auth import register_user, login_user, get_user_profile
+from utils.db import init_db
+from utils.auth import (
+    register_user, login_user, get_user_profile,
+    update_user_info, change_password
+)
 from utils.scanner import scan_document, get_matches
 from utils.credits import request_credits
 from utils.analytics import get_admin_analytics
@@ -9,9 +12,8 @@ from utils.analytics import get_admin_analytics
 app = Flask(__name__)
 app.secret_key = 'replace_with_strong_secret_key'
 
-swagger = Swagger(app)  # Enable Swagger docs at /apidocs
+swagger = Swagger(app)
 
-# Initialize SQLite DB on startup
 init_db()
 
 @app.route('/')
@@ -25,9 +27,9 @@ def index():
     """
     return render_template('index.html')
 
-# --------------------------------
-# AUTH: Register, Login, Logout
-# --------------------------------
+# ---------------------------
+# AUTH ROUTES
+# ---------------------------
 @app.route('/auth/register', methods=['POST'])
 def register():
     """
@@ -42,16 +44,30 @@ def register():
         in: formData
         type: string
         required: true
+      - name: phone
+        in: formData
+        type: string
+        required: false
+      - name: first_name
+        in: formData
+        type: string
+        required: false
+      - name: last_name
+        in: formData
+        type: string
+        required: false
+      - name: dob
+        in: formData
+        type: string
+        required: false
     responses:
       201:
-        description: Registration success
+        description: Registration successful
       400:
         description: Registration error
     """
-    form_data = request.form
-    result, status = register_user(form_data)
-    if status == 201:
-        return jsonify({"success": True, "message": "Registration successful"}), 201
+    data = request.form
+    result, status = register_user(data)
     return jsonify(result), status
 
 @app.route('/auth/login', methods=['POST'])
@@ -70,16 +86,15 @@ def login():
         required: true
     responses:
       200:
-        description: Login success
+        description: Login successful
       401:
         description: Invalid credentials
     """
-    form_data = request.form
-    result, status = login_user(form_data)
+    data = request.form
+    result, status = login_user(data)
     if status == 200:
-        session['username'] = form_data.get('username')
+        session['username'] = data.get('username')
         session['role'] = result.get('role', 'user')
-        return jsonify({"success": True, "role": session['role']}), 200
     return jsonify(result), status
 
 @app.route('/auth/logout', methods=['POST'])
@@ -89,14 +104,14 @@ def logout():
     ---
     responses:
       200:
-        description: Logout success
+        description: Logout successful
     """
     session.clear()
     return jsonify({"success": True, "message": "Logged out"}), 200
 
-# --------------------------------
-# USER/UPLOAD: Profile, Upload
-# --------------------------------
+# ---------------------------
+# USER PROFILE & UPDATES
+# ---------------------------
 @app.route('/user/profile', methods=['GET'])
 def profile():
     """
@@ -104,19 +119,120 @@ def profile():
     ---
     responses:
       200:
-        description: Returns user profile
+        description: Returns user profile (including phone, first_name, last_name, dob)
       401:
         description: Not logged in
     """
     if 'username' not in session:
         return jsonify({"error": "Not logged in"}), 401
-    profile_data = get_user_profile(session['username'])
-    return jsonify({"profile": profile_data}), 200
+    user_info = get_user_profile(session['username'])
+    return jsonify({"profile": user_info})
 
+@app.route('/user/update', methods=['POST'])
+def user_update():
+    """
+    Update User Info
+    ---
+    parameters:
+      - name: phone
+        in: formData
+        type: string
+        required: false
+      - name: first_name
+        in: formData
+        type: string
+        required: false
+      - name: last_name
+        in: formData
+        type: string
+        required: false
+      - name: dob
+        in: formData
+        type: string
+        required: false
+    responses:
+      200:
+        description: User info updated successfully
+      401:
+        description: Not logged in
+      404:
+        description: User not found
+    """
+    if 'username' not in session:
+        return jsonify({"error": "Not logged in"}), 401
+    data = request.form
+    result, status = update_user_info(session['username'], data)
+    return jsonify(result), status
+
+@app.route('/user/change_password', methods=['POST'])
+def user_change_password():
+    """
+    Change Password
+    ---
+    parameters:
+      - name: old_password
+        in: formData
+        type: string
+        required: true
+      - name: new_password
+        in: formData
+        type: string
+        required: true
+    responses:
+      200:
+        description: Password changed successfully
+      401:
+        description: Old password incorrect or user not logged in
+      404:
+        description: User not found
+    """
+    if 'username' not in session:
+        return jsonify({"error": "Not logged in"}), 401
+    data = request.form
+    result, status = change_password(session['username'], data)
+    return jsonify(result), status
+
+@app.route('/user/update', methods=['PUT'])
+def user_update():
+    """
+    Update user info (PUT).
+    ---
+    parameters:
+      - name: phone
+        in: formData
+        type: string
+      - name: first_name
+        in: formData
+        type: string
+      - name: last_name
+        in: formData
+        type: string
+      - name: dob
+        in: formData
+        type: string
+    responses:
+      200:
+        description: User info updated
+      401:
+        description: Not logged in
+      404:
+        description: User not found
+    """
+    if 'username' not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
+    # Use request.form if you're doing method override or request.data if raw JSON, etc.
+    data = request.form
+    result, status = update_user_info(session['username'], data)
+    return jsonify(result), status
+
+# ---------------------------
+# DOCUMENT UPLOAD & MATCH
+# ---------------------------
 @app.route('/upload', methods=['POST'])
 def upload():
     """
-    Document Upload
+    Upload Document
     ---
     parameters:
       - name: document
@@ -165,7 +281,7 @@ def credits_request():
     ---
     responses:
       200:
-        description: Credit request success
+        description: Request success
       401:
         description: Not logged in
     """
@@ -174,53 +290,9 @@ def credits_request():
     result = request_credits(session['username'])
     return jsonify(result)
 
-
-
-@app.route('/make_admin/<username>', methods=['POST'])
-def make_admin(username):
-    """
-    Promote user to admin role, requiring a secret code in the request body.
-    ---
-    parameters:
-      - name: username
-        in: path
-        type: string
-        required: true
-      - name: secret_code
-        in: formData
-        type: string
-        required: true
-    responses:
-      200:
-        description: User is now admin
-      401:
-        description: Invalid or missing secret code
-      404:
-        description: User not found
-    """
-    # Replace 'my_super_secret_code' with something more secure
-    required_code = 'my_super_secret_code'
-
-    # The form data must include "secret_code"
-    provided_code = request.form.get('secret_code')
-    if provided_code != required_code:
-        return jsonify({"error": "Unauthorized - invalid code"}), 401
-
-    # Check if user exists
-    conn = get_db()
-    cursor = conn.execute("SELECT username FROM users WHERE username=?", (username,))
-    row = cursor.fetchone()
-    if not row:
-        return jsonify({"error": f"User '{username}' not found"}), 404
-
-    # Update role
-    conn.execute("UPDATE users SET role='admin' WHERE username=?", (username,))
-    conn.commit()
-    return jsonify({"message": f"User '{username}' is now admin"}), 200
-
-# --------------------------------
-# ADMIN
-# --------------------------------
+# ---------------------------
+# ADMIN ANALYTICS
+# ---------------------------
 @app.route('/admin/analytics', methods=['GET'])
 def admin_analytics():
     """
@@ -228,36 +300,27 @@ def admin_analytics():
     ---
     responses:
       200:
-        description: Admin analytics data
+        description: Returns analytics data
       401:
         description: Not logged in
       403:
         description: Unauthorized
     """
-    # Check if there's a user logged in
     if 'username' not in session:
         return jsonify({"error": "Not logged in"}), 401
-
-    # Retrieve user info from DB
-    user_info = get_user_profile(session['username'])
-    if not user_info or user_info.get('error'):
-        return jsonify({"error": "User not found"}), 404
-
-    # Ensure the user is actually admin
-    if user_info.get('role') != 'admin':
+    if 'role' not in session or session['role'] != 'admin':
         return jsonify({"error": "Unauthorized"}), 403
-
-    # If we get here, user is admin
     data = get_admin_analytics()
-    return jsonify(data), 200
+    return jsonify(data)
 
-
-# --------------------------------
+# ---------------------------
 # TEMPLATES
-# --------------------------------
+# ---------------------------
 @app.route('/page/<name>')
 def serve_page(name):
-    """Renders the requested page from templates."""
+    """
+    Render an HTML template by name, e.g. /page/login -> login.html
+    """
     return render_template(f"{name}.html")
 
 if __name__ == '__main__':
