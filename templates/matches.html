@@ -7,7 +7,6 @@
   <style>
     :root {
       --primary: #2563eb;
-      --primary-dark: #1d4ed8;
       --light: #f0f5ff;
       --gray: #6b7280;
       --dark: #1f2937;
@@ -45,30 +44,14 @@
     
     .nav-links {
       display: flex;
+      gap: 1.5rem;
       align-items: center;
     }
     
-    .nav-links a,
-    .nav-links button {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      margin-left: 0.5rem;
-      color: #fff;
-      background-color: #2563eb;
+    .nav-links a {
+      color: white;
       text-decoration: none;
-      border: none;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    
-    .nav-links a:hover,
-    .nav-links button:hover {
-      background-color: #1d4ed8;
-    }
-    
-    .nav-links a:first-child {
-      margin-left: 0;
+      font-weight: 500;
     }
     
     .card {
@@ -114,6 +97,15 @@
       margin-bottom: 0.5rem;
       color: var(--gray);
     }
+    
+    #logout-btn {
+      background: transparent;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
@@ -122,9 +114,8 @@
       <h1>DocScanner</h1>
       <div class="nav-links">
         <a href="/">Home</a>
-        <a href="/page/profile">Profile</a>
         <a href="/page/upload">Upload</a>
-        <button id="logout-btn">Logout</button>
+        <a href="#" id="logout-btn">Logout</a>
       </div>
     </div>
   </nav>
@@ -153,7 +144,8 @@
   </div>
   
   <script>
-    document.getElementById('logout-btn')?.addEventListener('click', async () => {
+    document.getElementById('logout-btn')?.addEventListener('click', async (e) => {
+      e.preventDefault();
       try {
         const response = await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
         if (response.ok) {

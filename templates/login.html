@@ -22,7 +22,7 @@
             <h2 style="margin-bottom: 1.5rem;">Welcome Back</h2>
             
             <div id="registrationSuccess" class="alert alert-success" style="display: none;">
-                Registration successful! Please login
+                Registration successful! Please login.
             </div>
 
             <form id="loginForm" action="/auth/login" method="POST">
@@ -72,8 +72,12 @@
                 if (response.ok) {
                     localStorage.setItem('username', data.username || 'user');
                     localStorage.setItem('role', data.role || 'user');
-                    
-                    window.location.href = '/page/upload';
+                    // Redirect admin users directly to the admin dashboard
+                    if(data.role === 'admin') {
+                        window.location.href = '/admin/dashboard';
+                    } else {
+                        window.location.href = '/page/upload';
+                    }
                 } else {
                     showAlert(data.error || 'Invalid credentials', 'error');
                 }

@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, session, jsonify
+from flask import Flask, request, render_template, session, jsonify, redirect
 from flasgger import Swagger
 from utils.db import init_db, get_db
 from utils.auth import (
@@ -7,7 +7,6 @@ from utils.auth import (
 )
 from utils.scanner import scan_document, get_matches
 from utils.credits import request_credits
-from utils.analytics import get_admin_analytics
 import os
 from werkzeug.utils import secure_filename
 
@@ -22,6 +21,13 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 swagger = Swagger(app)
 init_db()
 
+# Add this after session configuration
+@app.before_request
+def check_admin():
+    if request.path.startswith('/admin') and \
+       (not session.get('role') or session['role'] != 'admin'):
+        return redirect('/page/login')
+    
 @app.route('/')
 def index():
     """
@@ -298,28 +304,97 @@ def credits_request():
     result = request_credits(session['username'])
     return jsonify(result)
 
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    if 'username' not in session or session.get('role') != 'admin':
+        return redirect('/page/login')
+    return render_template('dashboard.html')
+
 # ---------------------------
 # ADMIN ANALYTICS
 # ---------------------------
 @app.route('/admin/analytics', methods=['GET'])
 def admin_analytics():
     """
-    Admin Analytics
+    Get admin analytics data
     ---
     responses:
       200:
-        description: Returns analytics data
-      401:
-        description: Not logged in
+        description: Admin analytics data
       403:
         description: Unauthorized
     """
-    if 'username' not in session:
-        return jsonify({"error": "Not logged in"}), 401
-    if 'role' not in session or session['role'] != 'admin':
+    if 'username' not in session or session.get('role') != 'admin':
         return jsonify({"error": "Unauthorized"}), 403
-    data = get_admin_analytics()
-    return jsonify(data)
+    
+    conn = get_db()
+    
+    # Total scans (documents)
+    cursor = conn.execute('SELECT COUNT(*) as total_scans FROM documents')
+    total_scans = cursor.fetchone()["total_scans"]
+    
+    # Active users (using documents with recent timestamps as a proxy)
+    cursor = conn.execute('''
+        SELECT COUNT(DISTINCT username) as active_users 
+        FROM documents 
+        WHERE scanned_at > datetime('now', '-1 day')
+    ''')
+    active_users = cursor.fetchone()["active_users"]
+    
+    # Pending credit requests
+    cursor = conn.execute('''
+        SELECT COUNT(*) as pending_credits 
+        FROM credit_requests 
+        WHERE status = 'pending'
+    ''')
+    pending_credits = cursor.fetchone()["pending_credits"]
+    
+    # Scan timeline (last 7 days)
+    cursor = conn.execute('''
+        SELECT date(scanned_at) as date, COUNT(*) as count 
+        FROM documents 
+        WHERE scanned_at > datetime('now', '-7 days')
+        GROUP BY date(scanned_at)
+        ORDER BY date(scanned_at)
+    ''')
+    scan_timeline = [dict(row) for row in cursor.fetchall()]
+    
+    # User distribution
+    cursor = conn.execute('''
+        SELECT role, COUNT(*) as count 
+        FROM users 
+        GROUP BY role
+    ''')
+    user_distribution = [dict(row) for row in cursor.fetchall()]
+    
+    # Recent matches
+    cursor = conn.execute('''
+        SELECT sr.id, sr.username, sr.doc_id, sr.matched_doc_id, sr.final_score as similarity,
+               sr.scanned_at as timestamp, d.filename
+        FROM scan_results sr
+        JOIN documents d ON sr.doc_id = d.id
+        ORDER BY sr.scanned_at DESC
+        LIMIT 10
+    ''')
+    recent_matches = []
+    for row in cursor.fetchall():
+        recent_matches.append({
+            "id": row["id"],
+            "username": row["username"],
+            "doc_id": row["doc_id"],
+            "filename": row["filename"],
+            "similarity": row["similarity"],
+            "timestamp": row["timestamp"]
+        })
+    
+    return jsonify({
+        "total_scans": total_scans,
+        "active_users": active_users,
+        "pending_credits": pending_credits,
+        "scan_timeline": scan_timeline,
+        "user_distribution": user_distribution,
+        "recent_matches": recent_matches
+    })
 
 # ---------------------------
 # TEMPLATES

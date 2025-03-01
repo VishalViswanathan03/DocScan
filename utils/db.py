@@ -31,14 +31,14 @@ def init_db():
 
     # DOCUMENTS table
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS documents (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
-            filename TEXT,
-            content TEXT,
-            uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
+    CREATE TABLE IF NOT EXISTS documents (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT,
+        filename TEXT,
+        content TEXT,
+        scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )
+''')
 
     # CREDIT REQUESTS table
     cursor.execute('''
@@ -60,6 +60,17 @@ def init_db():
             final_score REAL,
             is_similar INTEGER,
             scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS credit_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(username) REFERENCES users(username)
         )
     ''')
 

@@ -1,3 +1,5 @@
 flask
-requests
 flasgger
+werkzeug
+sqlalchemy
+flask-cors
