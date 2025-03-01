@@ -1,44 +1,98 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Register</h2>
-<form id="registerForm">
-  <label>Username</label>
-  <input type="text" name="username" required>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - DocScanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1>DocScanner</h1>
+            <div class="nav-links">
+                <a href="/page/login">Login</a>
+            </div>
+        </div>
+    </nav>
 
-  <label>Password</label>
-  <input type="password" name="password" required>
+    <div class="container">
+        <div class="card">
+            <h2>Create Account</h2>
+            <form id="registerForm" action="/auth/register" method="POST">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="phone">Phone</label>
+                    <input type="text" id="phone" name="phone">
+                </div>
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name">
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name">
+                </div>
+                <div class="form-group">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" id="dob" name="dob">
+                </div>
+                <button type="submit" class="btn btn-primary">Register</button>
+            </form>
+        </div>
+    </div>
 
-  <label>Phone (optional)</label>
-  <input type="text" name="phone">
+    <div id="successModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-body">
+                <h3>🎉 Registration Successful!</h3>
+                <p>Redirecting to login page in <span id="countdown">3</span> seconds...</p>
+                <div class="loader"></div>
+            </div>
+        </div>
+    </div>
 
-  <label>First Name (optional)</label>
-  <input type="text" name="first_name">
-
-  <label>Last Name (optional)</label>
-  <input type="text" name="last_name">
-
-  <label>Date of Birth (optional)</label>
-  <input type="date" name="dob">
-
-  <button type="submit">Register</button>
-</form>
-
-<script>
-document.getElementById('registerForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  const formData = new FormData(e.target);
-  const response = await fetch('/auth/register', {
-    method: 'POST',
-    body: formData
-  });
-  const result = await response.json();
-  if (result.message) {
-    alert(result.message);
-    window.location.href = '/page/login';
-  } else {
-    alert(result.error || 'Registration failed');
-  }
-});
-</script>
-{% endblock %}
-    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch('/auth/register', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    const modal = document.getElementById('successModal');
+                    modal.style.display = 'block';
+                    
+                    let seconds = 3;
+                    const countdownEl = document.getElementById('countdown');
+                    const countdownInterval = setInterval(() => {
+                        seconds--;
+                        countdownEl.textContent = seconds;
+                        if (seconds <= 0) {
+                            clearInterval(countdownInterval);
+                            window.location.href = '/page/login';
+                        }
+                    }, 1000);
+                } else {
+                    showAlert(data.error || 'Registration failed', 'error');
+                }
+            } catch (error) {
+                showAlert('Network error occurred', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

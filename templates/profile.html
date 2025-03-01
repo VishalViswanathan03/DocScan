@@ -1,11 +1,226 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Your Profile</h2>
-<p>Username: <span id="usernameField"></span></p>
-<p>Credits: <span id="creditsField"></span></p>
-<p><a href="/page/upload">Upload Document</a></p>
-<p><a href="/page/admin_dashboard">Admin Dashboard</a></p>
-<script>
-loadProfile();
-</script>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - DocScanner</title>
+    <!-- Removed the external CSS link and added inline styles from the first document -->
+    <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --light: #f0f5ff;
+      --gray: #6b7280;
+      --dark: #1f2937;
+    }
+   
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    }
+   
+    body {
+      background-color: #f0f5ff;
+      line-height: 1.6;
+    }
+   
+    .navbar {
+      background-color: var(--primary);
+      color: white;
+      padding: 1rem 0;
+    }
+   
+    .container {
+      width: 90%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+   
+    .navbar .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+   
+    .nav-links {
+      display: flex;
+      align-items: center;
+    }
+   
+    .nav-links a,
+    .nav-links button {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      margin-left: 0.5rem;
+      color: #fff;
+      background-color: #2563eb;
+      text-decoration: none;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+   
+    .nav-links a:hover,
+    .nav-links button:hover {
+      background-color: #1d4ed8;
+    }
+   
+    .nav-links a:first-child {
+      margin-left: 0;
+    }
+   
+    .card {
+      background-color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      margin: 2rem 0;
+    }
+   
+    h2 {
+      color: var(--dark);
+      margin-bottom: 1.5rem;
+    }
+
+    h3 {
+      color: var(--dark);
+      margin-bottom: 1rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--dark);
+    }
+
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.25rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .mb-2 {
+      margin-bottom: 1.5rem;
+    }
+
+    .mt-2 {
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+          <h1>DocScanner</h1>
+          <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/page/profile">Profile</a>
+            <a href="/page/upload">Upload</a>
+            <button id="logout-btn">Logout</button>
+          </div>
+        </div>
+      </nav>
+    <div class="container">
+        <div class="card">
+            <h2>Your Profile</h2>
+            <div id="profile-info" class="mb-2">
+                <p>Username: <span id="username"></span></p>
+                <p>Credits Remaining: <span id="credits"></span></p>
+            </div>
+            <h3>Update Information</h3>
+            <form data-action="/user/update" method="PUT">
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" name="phone" class="form-control"
+                           pattern="[0-9]{10}" id="phone">
+                </div>
+               
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" name="first_name"
+                               class="form-control" id="first_name">
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" name="last_name"
+                               class="form-control" id="last_name">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" name="dob" class="form-control" id="dob">
+                </div>
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </form>
+            <h3 class="mt-2">Change Password</h3>
+            <form data-action="/user/change_password" method="POST">
+                <div class="form-group">
+                    <label>Old Password</label>
+                    <input type="password" name="old_password"
+                           class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" name="new_password"
+                           class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Change Password</button>
+            </form>
+        </div>
+    </div>
+    <script>
+        document.getElementById('logout-btn')?.addEventListener('click', async () => {
+          try {
+            const response = await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+            if (response.ok) {
+              window.location.href = '/page/login';
+            }
+          } catch (error) {
+            alert('Error logging out');
+          }
+        });
+        
+        async function loadProfile() {
+            const response = await fetch('/user/profile');
+            const data = await response.json();
+           
+            document.getElementById('username').textContent = data.profile.username;
+            document.getElementById('credits').textContent = data.profile.credits;
+            document.getElementById('phone').value = data.profile.phone || '';
+            document.getElementById('first_name').value = data.profile.first_name || '';
+            document.getElementById('last_name').value = data.profile.last_name || '';
+            document.getElementById('dob').value = data.profile.dob || '';
+        }
+        loadProfile();
+    </script>
+</body>
+</html>

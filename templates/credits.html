@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credits - DocScanner</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    <!-- Same navbar as upload.html -->
+
+    <div class="container">
+        <div class="card">
+            <div class="credit-header">
+                <h2>Credits Management</h2>
+                <div class="credit-balance">
+                    <span>Available Credits:</span>
+                    <strong id="credit-count">20</strong>
+                </div>
+            </div>
+
+            <div class="credit-request">
+                <h3>Request Additional Credits</h3>
+                <form action="/credits/request" method="POST">
+                    <p class="text-muted">Requests are reviewed within 24 hours</p>
+                    <button type="submit" class="btn btn-primary">
+                        Request Credits (+5)
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .credit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .credit-balance {
+            background: var(--light);
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+        }
+        .credit-balance strong {
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+        .text-muted { color: #64748b; margin-bottom: 0.5rem; }
+    </style>
+</body>
+</html>

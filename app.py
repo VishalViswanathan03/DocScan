@@ -1,6 +1,6 @@
 from flask import Flask, request, render_template, session, jsonify
 from flasgger import Swagger
-from utils.db import init_db
+from utils.db import init_db, get_db
 from utils.auth import (
     register_user, login_user, get_user_profile,
     update_user_info, change_password
@@ -8,13 +8,18 @@ from utils.auth import (
 from utils.scanner import scan_document, get_matches
 from utils.credits import request_credits
 from utils.analytics import get_admin_analytics
-import debugpy
+import os
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = 'replace_with_strong_secret_key'
 
-swagger = Swagger(app)
+# Add these configurations
+app.config['UPLOAD_FOLDER'] = os.path.join('data', 'uploads')
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+swagger = Swagger(app)
 init_db()
 
 @app.route('/')
@@ -212,10 +217,40 @@ def upload():
     """
     if 'username' not in session:
         return jsonify({"error": "Not logged in"}), 401
-    file = request.files.get('document')
-    result = scan_document(session['username'], file)
-    return jsonify(result)
 
+    if 'document' not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files['document']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    try:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+
+        file.save(file_path)
+
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+
+        conn = get_db()
+        cursor = conn.execute(
+            'INSERT INTO documents (username, filename, content) VALUES (?, ?, ?)',
+            (session['username'], filename, content)
+        )
+        doc_id = cursor.lastrowid
+        conn.commit()
+
+        conn.execute('UPDATE users SET credits = credits - 1 WHERE username = ?', (session['username'],))
+        conn.commit()
+
+        return jsonify({"success": True, "document_id": doc_id}), 200
+
+    except Exception as e:
+        print(f"Upload Error: {e}")
+        return jsonify({"error": str(e)}), 500
+        
 @app.route('/matches/<int:doc_id>', methods=['GET'])
 def matches(doc_id):
     """
@@ -236,8 +271,12 @@ def matches(doc_id):
     """
     if 'username' not in session:
         return jsonify({"error": "Not logged in"}), 401
+
     result = get_matches(session['username'], doc_id)
-    return jsonify(result)
+    if isinstance(result, dict) and 'matches' in result:
+        return render_template('matches.html', matches=result['matches'])
+    else:
+        return jsonify(result), 404
 
 @app.route('/credits/request', methods=['POST'])
 def credits_request():
