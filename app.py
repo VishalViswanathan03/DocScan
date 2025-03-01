@@ -250,7 +250,11 @@ def upload():
     except Exception as e:
         print(f"Upload Error: {e}")
         return jsonify({"error": str(e)}), 500
-        
+    
+@app.route('/health')
+def health():
+    return "OK", 200
+
 @app.route('/matches/<int:doc_id>', methods=['GET'])
 def matches(doc_id):
     """
@@ -328,4 +332,4 @@ def serve_page(name):
     return render_template(f"{name}.html")
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=8080, debug=True)
