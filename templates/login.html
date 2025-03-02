@@ -57,20 +57,21 @@
 
     // Handle the login form via JavaScript fetch
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();  // Stop the browser from navigating to the JSON response
+      e.preventDefault();  // Prevent default form submission
       const formData = new FormData(e.target);
 
       try {
         const response = await fetch('/auth/login', {
-        method: 'POST',
-        credentials: 'include', 
-        body: formData
+          method: 'POST',
+          credentials: 'include',  // Ensure cookies are sent/received
+          body: formData
         });
-
         const data = await response.json();
 
         if (response.ok) {
-          // If role is admin, redirect to admin dashboard; otherwise, upload page
+          // Save the username in localStorage so client-side auth checks pass
+          localStorage.setItem('username', formData.get('username'));
+          // Redirect based on role
           if (data.role === 'admin') {
             window.location.href = '/admin/dashboard';
           } else {

@@ -9,8 +9,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('logout-btn')?.addEventListener('click', async () => {
         try {
-            const response = await fetch('/auth/logout', { method: 'POST' });
+            const response = await fetch('/auth/logout', { 
+                method: 'POST',
+                credentials: 'include'
+            });
             if (response.ok) {
+                // Clear localStorage on logout
+                localStorage.removeItem('username');
                 window.location.href = '/page/login';
             }
         } catch (error) {
@@ -43,12 +48,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             headers: {
                                 'Content-Type': 'application/x-www-form-urlencoded'
                             },
-                            body: params.toString()
+                            body: params.toString(),
+                            credentials: 'include'
                         });
                         
                         const data = await response.json();
                         if (response.ok) {
-                            // Refresh profile data if the update profile form was submitted
                             if (action === '/user/update') {
                                 loadProfile();
                             }
@@ -69,12 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         const body = method === 'GET' ? null : formData;
                         const response = await fetch(action, {
                             method: method,
-                            body: body
+                            body: body,
+                            credentials: 'include'
                         });
                         
                         const data = await response.json();
                         if (response.ok) {
-                            // For registration, show modal and redirect (if applicable)
                             if (action === '/auth/register') {
                                 const modal = document.getElementById('successModal');
                                 modal.style.display = 'block';
@@ -117,8 +122,10 @@ async function loadProfile() {
         const data = await response.json();
 
         if (response.ok && data.profile) {
+            // Save the username in localStorage so client-side auth checks pass
             localStorage.setItem('username', data.profile.username);
 
+            // Make sure these IDs match the HTML inputs or elements
             const usernameEl = document.getElementById('username');
             const creditsEl = document.getElementById('credits');
             const phoneEl = document.getElementById('phone');
@@ -144,7 +151,6 @@ async function loadProfile() {
         showAlert('Failed to load profile', 'error');
     }
 }
-
 
 /**
  * Check if the user is authenticated on protected pages.
@@ -187,7 +193,7 @@ async function loadMatches() {
     try {
         const pathParts = window.location.pathname.split('/');
         const docId = pathParts[pathParts.length - 1];
-        const response = await fetch(`/matches/${docId}`);
+        const response = await fetch(`/matches/${docId}`, { credentials: 'include' });
         const data = await response.json();
         if (response.ok) {
             const matchesList = document.getElementById('matches-list');
