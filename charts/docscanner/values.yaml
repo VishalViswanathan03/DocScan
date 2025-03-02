@@ -10,3 +10,7 @@ env:
 service:
   type: ClusterIP
   port: 80
+
+cronJob:
+  enabled: true
+  schedule: "0 0 * * *"

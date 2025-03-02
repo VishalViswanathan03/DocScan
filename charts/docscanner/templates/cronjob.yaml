@@ -1,0 +1,26 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Release.Name }}-credits-reset
+spec:
+  schedule: "0 0 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: credits-reset
+            image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+            command: ["python", "reset_credits.py"]
+            env:
+            - name: FLASK_SECRET_KEY
+              value: "{{ .Values.env.FLASK_SECRET_KEY }}"
+            volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+          volumes:
+          - name: data-volume
+            persistentVolumeClaim:
+              claimName: data-pvc
+          restartPolicy: OnFailure
