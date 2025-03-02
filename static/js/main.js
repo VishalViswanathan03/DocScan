@@ -1,8 +1,11 @@
+// main.js - Common script for logged-in pages and shared functionality
+
 document.addEventListener('DOMContentLoaded', () => {
-    checkAuthStatus();
-    
-    // Load existing profile data immediately on page load
-    loadProfile();
+    // Only run these functions on protected pages (not on login or register)
+    if (!window.location.pathname.includes('/page/login') && !window.location.pathname.includes('/page/register')) {
+        checkAuthStatus();
+        loadProfile();
+    }
 
     document.getElementById('logout-btn')?.addEventListener('click', async () => {
         try {
@@ -15,92 +18,94 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Listen to all form submissions
-    document.querySelectorAll('form').forEach(form => {
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(form);
-            // Use the action attribute if set; otherwise, use data-action.
-            const action = form.getAttribute('action') || form.dataset.action;
-            // Use custom data-method if defined; otherwise, default to form.method.
-            const method = form.dataset.method ? form.dataset.method.toUpperCase() : form.method.toUpperCase();
-            
-            // Properly handle PUT requests
-            if (method === 'PUT') {
-                try {
-                    // Convert FormData to URLSearchParams for PUT
-                    const params = new URLSearchParams();
-                    for (const pair of formData.entries()) {
-                        params.append(pair[0], pair[1]);
-                    }
-                    
-                    const response = await fetch(action, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded'
-                        },
-                        body: params.toString()
-                    });
-                    
-                    const data = await response.json();
-                    if (response.ok) {
-                        // Refresh profile data if the update profile form was submitted
-                        if (action === '/user/update') {
-                            loadProfile();
+    // Attach the generic form submission handler only on protected pages
+    if (!window.location.pathname.includes('/page/login') && !window.location.pathname.includes('/page/register')) {
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                // Use the action attribute if set; otherwise, use data-action.
+                const action = form.getAttribute('action') || form.dataset.action;
+                // Use custom data-method if defined; otherwise, default to form.method.
+                const method = form.dataset.method ? form.dataset.method.toUpperCase() : form.method.toUpperCase();
+                
+                // Properly handle PUT requests
+                if (method === 'PUT') {
+                    try {
+                        // Convert FormData to URLSearchParams for PUT
+                        const params = new URLSearchParams();
+                        for (const pair of formData.entries()) {
+                            params.append(pair[0], pair[1]);
                         }
-                        if (data.redirect) {
-                            window.location.href = data.redirect;
-                        } else {
-                            showAlert(data.message || 'Operation successful', 'success');
-                        }
-                    } else {
-                        showAlert(data.error || 'Something went wrong', 'error');
-                    }
-                } catch (error) {
-                    showAlert('Network error occurred', 'error');
-                }
-            } else {
-                // Handle GET, POST, etc. normally
-                try {
-                    const body = method === 'GET' ? null : formData;
-                    const response = await fetch(action, {
-                        method: method,
-                        body: body
-                    });
-                    
-                    const data = await response.json();
-                    if (response.ok) {
-                        // For registration, show modal and redirect (if applicable)
-                        if (action === '/auth/register') {
-                            const modal = document.getElementById('successModal');
-                            modal.style.display = 'block';
-                            
-                            let seconds = 3;
-                            const countdownEl = document.getElementById('countdown');
-                            const countdownInterval = setInterval(() => {
-                                seconds--;
-                                countdownEl.textContent = seconds;
-                                if (seconds <= 0) {
-                                    clearInterval(countdownInterval);
-                                    window.location.href = '/page/login';
-                                }
-                            }, 1000);
-                        } else {
+                        
+                        const response = await fetch(action, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded'
+                            },
+                            body: params.toString()
+                        });
+                        
+                        const data = await response.json();
+                        if (response.ok) {
+                            // Refresh profile data if the update profile form was submitted
+                            if (action === '/user/update') {
+                                loadProfile();
+                            }
                             if (data.redirect) {
                                 window.location.href = data.redirect;
                             } else {
                                 showAlert(data.message || 'Operation successful', 'success');
                             }
+                        } else {
+                            showAlert(data.error || 'Something went wrong', 'error');
                         }
-                    } else {
-                        showAlert(data.error || 'Something went wrong', 'error');
+                    } catch (error) {
+                        showAlert('Network error occurred', 'error');
                     }
-                } catch (error) {
-                    showAlert('Network error occurred', 'error');
+                } else {
+                    // Handle GET, POST, etc. normally
+                    try {
+                        const body = method === 'GET' ? null : formData;
+                        const response = await fetch(action, {
+                            method: method,
+                            body: body
+                        });
+                        
+                        const data = await response.json();
+                        if (response.ok) {
+                            // For registration, show modal and redirect (if applicable)
+                            if (action === '/auth/register') {
+                                const modal = document.getElementById('successModal');
+                                modal.style.display = 'block';
+                                
+                                let seconds = 3;
+                                const countdownEl = document.getElementById('countdown');
+                                const countdownInterval = setInterval(() => {
+                                    seconds--;
+                                    countdownEl.textContent = seconds;
+                                    if (seconds <= 0) {
+                                        clearInterval(countdownInterval);
+                                        window.location.href = '/page/login';
+                                    }
+                                }, 1000);
+                            } else {
+                                if (data.redirect) {
+                                    window.location.href = data.redirect;
+                                } else {
+                                    showAlert(data.message || 'Operation successful', 'success');
+                                }
+                            }
+                        } else {
+                            showAlert(data.error || 'Something went wrong', 'error');
+                        }
+                    } catch (error) {
+                        showAlert('Network error occurred', 'error');
+                    }
                 }
-            }
+            });
         });
-    });
+    }
 });
 
 /**
@@ -112,7 +117,7 @@ async function loadProfile() {
         const data = await response.json();
 
         if (response.ok && data.profile) {
-            // Make sure these IDs match the HTML inputs
+            // Make sure these IDs match the HTML inputs or elements
             const usernameEl = document.getElementById('username');
             const creditsEl = document.getElementById('credits');
             const phoneEl = document.getElementById('phone');

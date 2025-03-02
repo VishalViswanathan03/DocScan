@@ -4,193 +4,47 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document Matches - DocScanner</title>
-  <style>
-    :root {
-      --primary: #2563eb;
-      --light: #f0f5ff;
-      --gray: #6b7280;
-      --dark: #1f2937;
-    }
-    
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    
-    body {
-      background-color: #f0f5ff;
-      line-height: 1.6;
-    }
-    
-    .navbar {
-      background-color: var(--primary);
-      color: white;
-      padding: 1rem 0;
-    }
-    
-    .container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    
-    .navbar .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .nav-links {
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-    }
-    
-    .nav-links a {
-      color: white;
-      text-decoration: none;
-      font-weight: 500;
-    }
-    
-    .card {
-      background-color: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-      margin: 2rem 0;
-    }
-    
-    h2 {
-      color: var(--dark);
-      margin-bottom: 1.5rem;
-    }
-    
-    .matches-container {
-      margin-top: 1rem;
-      display: grid;
-      gap: 1rem;
-    }
-    
-    .match-card {
-      padding: 1rem;
-      border-radius: 0.5rem;
-      background: #f8fafc;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-    
-    .match-card.similar {
-      border-left: 4px solid #22c55e;
-    }
-    
-    .match-card.unique {
-      border-left: 4px solid #ef4444;
-    }
-    
-    h4 {
-      margin-bottom: 0.5rem;
-      color: var(--dark);
-    }
-    
-    p {
-      margin-bottom: 0.5rem;
-      color: var(--gray);
-    }
-    
-    #logout-btn {
-      background: transparent;
-      color: white;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
-      padding: 0;
-    }
-
-    .alert {
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 0.5rem;
-      text-align: center;
-    }
-
-    .alert-success {
-      background-color: #d1fae5;
-      color: #047857;
-    }
-
-    .alert-error {
-      background-color: #fee2e2;
-      color: #b91c1c;
-    }
-
-    .loading {
-      text-align: center;
-      margin: 2rem 0;
-      color: var(--gray);
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
+  <!-- Navigation for logged-in users: Home removed -->
   <nav class="navbar">
     <div class="container">
       <h1>DocScanner</h1>
       <div class="nav-links">
-        <a href="/">Home</a>
         <a href="/page/upload">Upload</a>
         <a href="/page/profile">Profile</a>
         <button id="logout-btn">Logout</button>
       </div>
     </div>
   </nav>
+  
   <div class="container">
     <div class="card">
       <h2>Document Matches</h2>
       <div id="loading" class="loading">Loading matches...</div>
-      <div id="matches-list" class="matches-container" style="display: none;">
-      </div>
+      <div id="matches-list" class="matches-container" style="display: none;"></div>
     </div>
   </div>
   
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      loadMatches();
-      
-      document.getElementById('logout-btn')?.addEventListener('click', async (e) => {
-        e.preventDefault();
-        try {
-          const response = await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
-          if (response.ok) {
-            window.location.href = '/page/login';
-          }
-        } catch (error) {
-          showAlert('Error logging out', 'error');
-        }
-      });
-    });
-
     async function loadMatches() {
       try {
         const loadingEl = document.getElementById('loading');
         const matchesList = document.getElementById('matches-list');
-        
         const pathParts = window.location.pathname.split('/');
         const docId = pathParts[pathParts.length - 1];
         
         const response = await fetch(`/api/matches/${docId}`, {
           method: 'GET',
-          headers: {
-            'Accept': 'application/json'
-          },
+          headers: { 'Accept': 'application/json' },
           credentials: 'include'
         });
-        
         const data = await response.json();
-        
         if (response.ok && data.matches) {
           loadingEl.style.display = 'none';
           matchesList.style.display = 'grid';
-          
           if (data.matches.length > 0) {
             matchesList.innerHTML = data.matches.map(match => `
               <div class="match-card ${match.is_similar ? 'similar' : 'unique'}">
@@ -207,25 +61,11 @@
           showAlert(data.error || 'Failed to load matches', 'error');
         }
       } catch (error) {
-        console.error('Error loading matches:', error);
         document.getElementById('loading').style.display = 'none';
         showAlert('Network error occurred while loading matches', 'error');
       }
     }
-
-    function showAlert(message, type = 'success') {
-      const existingAlerts = document.querySelectorAll('.alert');
-      existingAlerts.forEach(alert => alert.remove());
-      
-      const alertEl = document.createElement('div');
-      alertEl.className = `alert alert-${type === 'error' ? 'error' : 'success'}`;
-      alertEl.textContent = message;
-      
-      const card = document.querySelector('.card');
-      card.insertBefore(alertEl, card.firstChild.nextSibling);
-      
-      setTimeout(() => alertEl.remove(), 3000);
-    }
+    document.addEventListener('DOMContentLoaded', loadMatches);
   </script>
 </body>
 </html>

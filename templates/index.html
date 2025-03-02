@@ -1,12 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Document Scanner - AI-powered document comparison system">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta name="description" content="Document Scanner - AI-powered document comparison system" />
   <title>DocScanner - Home</title>
-  <!-- Link to common stylesheet -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  
+  <style>
+    /* Layout fixes for hero section */
+    .hero {
+      margin: 2rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .hero-text {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .cta-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .features {
+      margin-top: 2rem;
+    }
+    .features-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+    }
+    .feature-card {
+      flex: 1 1 200px;
+      min-width: 200px;
+      text-align: center;
+    }
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Button rules: fixed width for identical size */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 10rem;            /* Force both buttons to be the same width */
+      height: 3rem;           /* Optional fixed height for consistency */
+      border: none;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .btn-primary {
+      background: #000;
+      color: #fff;
+    }
+    .btn-primary:hover {
+      background: #333;
+    }
+    .btn-secondary {
+      background: #eee;
+      color: #444;
+    }
+    .btn-secondary:hover {
+      background: #ddd;
+    }
+  </style>
 </head>
 <body>
   <nav class="navbar">
@@ -16,32 +89,31 @@
         <a href="/">Home</a>
         <a href="/page/login">Login</a>
         <a href="/page/register">Register</a>
-        <!-- Added separate admin login link -->
         <a href="/admin/dashboard">Admin Login</a>
       </div>
     </div>
   </nav>
+
   <main class="container">
     <section class="hero">
-      <div class="card">
-        <div class="hero-content">
-          <div class="hero-text">
-            <h2>AI-Powered Document Comparison</h2>
-            <p class="hero-description">
-              Scan, compare, and detect similarities in documents with advanced AI technology.
-              Perfect for academic integrity checks and content verification.
-            </p>
-            <div class="cta-buttons">
-              <a href="/page/register" class="btn btn-primary">Get Started</a>
-              <a href="/page/login" class="btn btn-secondary">Existing User</a>
-            </div>
-          </div>
+      <div class="hero-content card">
+        <div class="hero-text">
+          <h2>AI-Powered Document Comparison</h2>
+          <p class="hero-description">
+            Scan, compare, and detect similarities in documents with advanced AI technology.
+            Perfect for academic integrity checks and content verification.
+          </p>
+        </div>
+        <div class="cta-buttons">
+          <a href="/page/register" class="btn btn-primary">Get Started</a>
+          <a href="/page/login" class="btn btn-secondary">Existing User</a>
         </div>
       </div>
     </section>
+
     <section class="features">
       <div class="card">
-        <h3 class="section-title">Why Choose DocScanner?</h3>
+        <h3 class="section-title" style="margin-bottom: 1rem;">Why Choose DocScanner?</h3>
         <div class="features-grid">
           <div class="feature-card">
             <div class="feature-icon">🔍</div>

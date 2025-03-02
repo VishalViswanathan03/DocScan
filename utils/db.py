@@ -25,7 +25,8 @@ def init_db():
             phone TEXT,
             first_name TEXT,
             last_name TEXT,
-            dob TEXT
+            dob TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
 
@@ -40,13 +41,16 @@ def init_db():
     )
 ''')
 
-    # CREDIT REQUESTS table
+    # CREDIT REQUESTS table - fixed version
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS credit_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT,
+            username TEXT NOT NULL,
+            amount INTEGER DEFAULT 5,
             status TEXT DEFAULT 'pending',
-            requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            processed_at TIMESTAMP,
+            FOREIGN KEY(username) REFERENCES users(username)
         )
     ''')
 
@@ -60,19 +64,6 @@ def init_db():
             final_score REAL,
             is_similar INTEGER,
             scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-
-    # CREDIT REQUESTS table updated with more fields
-    # Removed the duplicate CREATE TABLE statement
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS credit_requests (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL,
-        amount INTEGER NOT NULL,
-        status TEXT DEFAULT 'pending',
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(username) REFERENCES users(username)
         )
     ''')
 

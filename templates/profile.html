@@ -4,148 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Profile - DocScanner</title>
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-dark: #1d4ed8;
-      --light: #f0f5ff;
-      --gray: #6b7280;
-      --dark: #1f2937;
-    }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    body {
-      background-color: #f0f5ff;
-      line-height: 1.6;
-    }
-    .navbar {
-      background-color: var(--primary);
-      color: white;
-      padding: 1rem 0;
-    }
-    .container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .navbar .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .nav-links {
-      display: flex;
-      align-items: center;
-    }
-    .nav-links a,
-    .nav-links button {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      margin-left: 0.5rem;
-      color: #fff;
-      background-color: #2563eb;
-      text-decoration: none;
-      border: none;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    .nav-links a:hover,
-    .nav-links button:hover {
-      background-color: #1d4ed8;
-    }
-    .nav-links a:first-child {
-      margin-left: 0;
-    }
-    .card {
-      background-color: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-      margin: 2rem 0;
-    }
-    h2, h3 {
-      color: var(--dark);
-    }
-    h2 {
-      margin-bottom: 1.5rem;
-    }
-    h3 {
-      margin-bottom: 1rem;
-    }
-    .form-group {
-      margin-bottom: 1rem;
-    }
-    .form-row {
-      display: flex;
-      gap: 1rem;
-    }
-    label {
-      display: block;
-      margin-bottom: 0.5rem;
-      color: var(--dark);
-    }
-    input {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #e2e8f0;
-      border-radius: 0.25rem;
-    }
-    .btn {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    .btn:hover {
-      background-color: var(--primary-dark);
-    }
-    .mb-2 {
-      margin-bottom: 1.5rem;
-    }
-    .mt-2 {
-      margin-top: 1.5rem;
-    }
-    /* Alert styles */
-    .alert {
-      position: fixed;
-      top: 1rem;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 1rem 2rem;
-      border-radius: 0.5rem;
-      z-index: 1000;
-    }
-    .alert-success {
-      background-color: #d1e7dd;
-      color: #0f5132;
-    }
-    .alert-error {
-      background-color: #f8d7da;
-      color: #842029;
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
+  <!-- Navigation for logged-in users: Home removed -->
   <nav class="navbar">
     <div class="container">
       <h1>DocScanner</h1>
       <div class="nav-links">
-        <a href="/">Home</a>
         <a href="/page/profile">Profile</a>
         <a href="/page/upload">Upload</a>
+        <a href="/page/credits">Credits</a>
         <button id="logout-btn">Logout</button>
       </div>
     </div>
   </nav>
+  
   <div class="container">
     <div class="card">
       <h2>Your Profile</h2>
@@ -154,7 +28,6 @@
         <p>Credits Remaining: <span id="credits"></span></p>
       </div>
       <h3>Update Information</h3>
-      <!-- Use method="POST" with a custom data-method override to force a PUT request -->
       <form data-action="/user/update" data-method="PUT" method="POST">
         <div class="form-group">
           <label for="phone">Phone Number</label>
@@ -174,7 +47,7 @@
           <label for="dob">Date of Birth</label>
           <input type="date" name="dob" id="dob">
         </div>
-        <button type="submit" class="btn">Update Profile</button>
+        <button type="submit" class="btn btn-primary">Update Profile</button>
       </form>
       <h3 class="mt-2">Change Password</h3>
       <form data-action="/user/change_password" method="POST">
@@ -186,10 +59,11 @@
           <label for="new_password">New Password</label>
           <input type="password" name="new_password" id="new_password" required>
         </div>
-        <button type="submit" class="btn">Change Password</button>
+        <button type="submit" class="btn btn-primary">Change Password</button>
       </form>
     </div>
   </div>
+  
   <script src="/static/js/main.js"></script>
 </body>
 </html>

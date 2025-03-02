@@ -4,129 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Upload Document - DocScanner</title>
-  <style>
-    :root {
-      --primary: #2563eb;
-      --primary-dark: #1d4ed8;
-      --light: #f0f5ff;
-      --gray: #6b7280;
-      --dark: #1f2937;
-    }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    body {
-      background-color: #f0f5ff;
-      line-height: 1.6;
-    }
-    .navbar {
-      background-color: var(--primary);
-      color: white;
-      padding: 1rem 0;
-    }
-    .container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    .navbar .container {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .nav-links {
-      display: flex;
-      align-items: center;
-    }
-    .nav-links a,
-    .nav-links button {
-      display: inline-block;
-      padding: 0.5rem 1rem;
-      margin-left: 1.5rem;
-      color: #fff;
-      background: none;
-      text-decoration: none;
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    .nav-links a:hover,
-    .nav-links button:hover {
-      text-decoration: underline;
-    }
-    .card {
-      background-color: white;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      padding: 2rem;
-      margin: 2rem 0;
-    }
-    h2 {
-      color: var(--dark);
-      margin-bottom: 1.5rem;
-    }
-    .upload-box {
-      border: 2px dashed #ccc;
-      border-radius: 0.5rem;
-      padding: 3rem;
-      text-align: center;
-      position: relative;
-      cursor: pointer;
-    }
-    .upload-box input[type="file"] {
-      opacity: 0;
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      cursor: pointer;
-    }
-    .upload-box p {
-      color: var(--gray);
-    }
-    .btn {
-      display: inline-block;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 0.25rem;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    .btn-primary {
-      background-color: var(--primary);
-      color: white;
-    }
-    .btn-primary:hover {
-      background-color: var(--primary-dark);
-    }
-    .mt-2 {
-      margin-top: 1.5rem;
-    }
-    /* New style for showing the file name */
-    #fileName {
-      margin-top: 1rem;
-      color: var(--gray);
-      font-weight: 500;
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
+  <!-- Navigation for logged-in users: Home removed -->
   <nav class="navbar">
     <div class="container">
       <h1>DocScanner</h1>
       <div class="nav-links">
-        <a href="/">Home</a>
         <a href="/page/profile">Profile</a>
         <a href="/page/upload">Upload</a>
+        <a href="/page/credits">Credits</a>
         <button id="logout-btn">Logout</button>
       </div>
     </div>
   </nav>
-
+  
   <div class="container">
     <div class="card">
       <h2>Upload Document</h2>
@@ -141,15 +34,12 @@
       <div id="results" class="mt-2"></div>
     </div>
   </div>
-
+  
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script>
     document.getElementById('document').addEventListener('change', (e) => {
       const file = e.target.files[0];
-      if (file) {
-        document.getElementById('fileName').textContent = `Selected: ${file.name}`;
-      } else {
-        document.getElementById('fileName').textContent = '';
-      }
+      document.getElementById('fileName').textContent = file ? `Selected: ${file.name}` : '';
     });
     
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
@@ -178,19 +68,7 @@
           throw new Error('Document ID not found in response');
         }
       } catch (error) {
-        console.error('Upload Error:', error);
         alert(`Upload failed: ${error.message}`);
-      }
-    });
-   
-    document.getElementById('logout-btn')?.addEventListener('click', async () => {
-      try {
-        const response = await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
-        if (response.ok) {
-          window.location.href = '/page/login';
-        }
-      } catch (error) {
-        alert('Error logging out');
       }
     });
   </script>

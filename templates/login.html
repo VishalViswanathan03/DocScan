@@ -1,112 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - DocScanner</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Login - DocScanner</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="container">
-            <h1>DocScanner</h1>
-            <div class="nav-links">
-                <a href="/">Home</a>
-                <a href="/page/register">Register</a>
-            </div>
-        </div>
-    </nav>
-
+  <nav class="navbar">
     <div class="container">
-        <div class="card">
-            <h2 style="margin-bottom: 1.5rem;">Welcome Back</h2>
-            
-            <div id="registrationSuccess" class="alert alert-success" style="display: none;">
-                Registration successful! Please login.
-            </div>
-
-            <form id="loginForm" action="/auth/login" method="POST">
-                <div class="form-group">
-                    <label>Username</label>
-                    <input type="text" name="username" class="form-control" required 
-                           autocomplete="username">
-                </div>
-                
-                <div class="form-group">
-                    <label>Password</label>
-                    <input type="password" name="password" class="form-control" required 
-                           autocomplete="current-password">
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-block">
-                    Sign In
-                </button>
-
-                <div class="auth-links">
-                    <a href="/page/register" class="text-link">
-                        Don't have an account? Register
-                    </a>
-                </div>
-            </form>
-        </div>
+      <h1>DocScanner</h1>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/page/register">Register</a>
+      </div>
     </div>
+  </nav>
 
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('new_user')) {
-            document.getElementById('registrationSuccess').style.display = 'block';
-        }
+  <div class="container">
+    <div class="card">
+      <h2 style="margin-bottom: 1.5rem;">Welcome Back</h2>
 
-        document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            
-            try {
-                const response = await fetch('/auth/login', {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await response.json();
-                if (response.ok) {
-                    localStorage.setItem('username', data.username || 'user');
-                    localStorage.setItem('role', data.role || 'user');
-                    // Redirect admin users directly to the admin dashboard
-                    if(data.role === 'admin') {
-                        window.location.href = '/admin/dashboard';
-                    } else {
-                        window.location.href = '/page/upload';
-                    }
-                } else {
-                    showAlert(data.error || 'Invalid credentials', 'error');
-                }
-            } catch (error) {
-                showAlert('Network error occurred', 'error');
-            }
+      <!-- This alert can be shown if the user is redirected from a successful registration -->
+      <div id="registrationSuccess" class="alert alert-success" style="display: none;">
+        Registration successful! Please login.
+      </div>
+
+      <!-- The key is to remove a direct action or prevent the default submission -->
+      <form id="loginForm">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" name="username" class="form-control" required autocomplete="username">
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <input type="password" name="password" class="form-control" required autocomplete="current-password">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+
+        <div class="auth-links">
+          <a href="/page/register" class="text-link">Don't have an account? Register</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  <script>
+    // If redirected from registration, show success alert
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('new_user')) {
+      document.getElementById('registrationSuccess').style.display = 'block';
+    }
+
+    // Handle the login form via JavaScript fetch
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();  // Stop the browser from navigating to the JSON response
+      const formData = new FormData(e.target);
+
+      try {
+        const response = await fetch('/auth/login', {
+          method: 'POST',
+          body: formData
         });
-    </script>
+        const data = await response.json();
 
-    <style>
-        .btn-block {
-            width: 100%;
-            margin: 1rem 0;
+        if (response.ok) {
+          // If role is admin, redirect to admin dashboard; otherwise, upload page
+          if (data.role === 'admin') {
+            window.location.href = '/admin/dashboard';
+          } else {
+            window.location.href = '/page/upload';
+          }
+        } else {
+          alert(data.error || 'Invalid credentials');
         }
-        
-        .auth-links {
-            text-align: center;
-            margin-top: 1rem;
-        }
-        
-        .text-link {
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 0.9rem;
-        }
-        
-        .text-link:hover {
-            text-decoration: underline;
-        }
-    </style>
+      } catch (error) {
+        alert('Network error occurred during login');
+      }
+    });
+  </script>
+
+  <style>
+    .btn-block {
+      width: 100%;
+      margin: 1rem 0;
+    }
+    .auth-links {
+      text-align: center;
+      margin-top: 1rem;
+    }
+    .text-link {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .text-link:hover {
+      text-decoration: underline;
+    }
+  </style>
 </body>
 </html>

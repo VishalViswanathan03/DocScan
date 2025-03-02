@@ -1,238 +1,517 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - DocScanner</title>
-    <!-- Retaining Tailwind & DaisyUI but overriding key styles for consistency -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            min-height: 100vh;
-        }
-        .sidebar {
-            background-color: #000;
-            color: #fff;
-            padding: 1rem;
-        }
-        .menu a {
-            color: #fff;
-        }
-        .chart-container {
-            position: relative;
-            height: 400px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - DocScanner</title>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@3.9.4/dist/full.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background-color: #000;
+      color: #fff;
+      padding: 1rem;
+    }
+    .menu a {
+      color: #fff;
+    }
+    .chart-container {
+      position: relative;
+      height: 400px;
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
 </head>
 <body>
-    <div class="dashboard-grid">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="mb-8">
-                <h1 class="text-xl font-bold">DocScanner Admin</h1>
-                <p class="text-sm">Analytics Dashboard</p>
-            </div>
-            <ul class="menu">
-                <li><a href="/admin/dashboard" class="active">📊 Analytics</a></li>
-                <li><a href="#user-management">👥 User Management</a></li>
-                <li><a href="#documents">📄 Documents</a></li>
-                <li><a href="#credits">🪙 Credit Requests</a></li>
-                <li><a href="#" id="logout-btn">🚪 Logout</a></li>
-            </ul>
-        </aside>
+  <div class="dashboard-grid">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="mb-8">
+        <h1 class="text-xl font-bold">DocScanner Admin</h1>
+        <p class="text-sm">Analytics Dashboard</p>
+      </div>
+      <ul class="menu">
+        <li><a href="#analytics" class="nav-link active" data-target="analytics-tab">📊 Analytics</a></li>
+        <li><a href="#user-management" class="nav-link" data-target="user-management-tab">👥 User Management</a></li>
+        <li><a href="#documents" class="nav-link" data-target="documents-tab">📄 Documents</a></li>
+        <li><a href="#credits" class="nav-link" data-target="credits-tab">🪙 Credit Requests</a></li>
+        <li><a href="#" id="logout-btn">🚪 Logout</a></li>
+      </ul>
+    </aside>
 
-        <!-- Main Content -->
-        <main class="p-8">
-            <!-- Stats Overview -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Total Scans</div>
-                        <div class="stat-value" id="total-scans">0</div>
-                        <div class="stat-desc">Document uploads</div>
-                    </div>
-                </div>
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Active Users</div>
-                        <div class="stat-value" id="active-users">0</div>
-                        <div class="stat-desc">Last 24 hours</div>
-                    </div>
-                </div>
-                <div class="stats shadow">
-                    <div class="stat">
-                        <div class="stat-title">Pending Credits</div>
-                        <div class="stat-value" id="pending-credits">0</div>
-                        <div class="stat-desc">Requests to review</div>
-                    </div>
-                </div>
+    <!-- Main Content -->
+    <main class="p-8">
+      <!-- Analytics Tab -->
+      <div id="analytics-tab" class="tab-content active">
+        <h1 class="text-2xl font-bold mb-6">Analytics Overview</h1>
+        
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div class="stats shadow">
+            <div class="stat">
+              <div class="stat-title">Total Scans</div>
+              <div class="stat-value" id="total-scans">0</div>
+              <div class="stat-desc">Document uploads</div>
             </div>
-
-            <!-- Charts -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div class="card shadow">
-                    <div class="card-body">
-                        <h2 class="card-title">Scan Activity</h2>
-                        <div class="chart-container">
-                            <canvas id="scansChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="card shadow">
-                    <div class="card-body">
-                        <h2 class="card-title">User Distribution</h2>
-                        <div class="chart-container">
-                            <canvas id="usersChart"></canvas>
-                        </div>
-                    </div>
-                </div>
+          </div>
+          <div class="stats shadow">
+            <div class="stat">
+              <div class="stat-title">Active Users</div>
+              <div class="stat-value" id="active-users">0</div>
+              <div class="stat-desc">Last 24 hours</div>
             </div>
-
-            <div class="card shadow">
-                <div class="card-body">
-                    <h2 class="card-title">Recent Matches</h2>
-                    <div class="overflow-x-auto">
-                        <table class="table table-zebra">
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Document</th>
-                                    <th>Similarity</th>
-                                    <th>Date</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="recent-matches">
-                                <!-- Will be populated by JavaScript -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+          </div>
+          <div class="stats shadow">
+            <div class="stat">
+              <div class="stat-title">Pending Credits</div>
+              <div class="stat-value" id="pending-credits">0</div>
+              <div class="stat-desc">Requests to review</div>
             </div>
-        </main>
-    </div>
+          </div>
+        </div>
 
-    <script>
-        // (Dashboard JS remains the same as before, with logout and analytics update)
-        async function loadAnalytics() {
-            try {
-                const response = await fetch('/admin/analytics');
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch analytics: ${response.status}`);
-                }
-                const data = await response.json();
-                console.log("Analytics data:", data);
-                document.getElementById('total-scans').textContent = data.total_scans || 0;
-                document.getElementById('active-users').textContent = data.active_users || 0;
-                document.getElementById('pending-credits').textContent = data.pending_credits || 0;
-                
-                const timelineData = data.scan_timeline || [];
-                const labels = timelineData.map(entry => new Date(entry.date).toLocaleDateString());
-                const counts = timelineData.map(entry => entry.count);
-                
-                const scansChartCanvas = document.getElementById('scansChart');
-                if (scansChartCanvas) {
-                    if (window.scansChart && window.scansChart.data && window.scansChart.data.datasets) {
-                        window.scansChart.data.labels = labels;
-                        window.scansChart.data.datasets[0].data = counts;
-                        window.scansChart.update();
-                    } else {
-                        window.scansChart = new Chart(scansChartCanvas, {
-                            type: 'line',
-                            data: {
-                                labels: labels,
-                                datasets: [{
-                                    label: 'Daily Scans',
-                                    data: counts,
-                                    borderColor: '#000',
-                                    tension: 0.1
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false
-                            }
-                        });
-                    }
-                }
-                
-                const userDistribution = data.user_distribution || [];
-                const roles = userDistribution.map(u => u.role);
-                const userCounts = userDistribution.map(u => u.count);
-                
-                const usersChartCanvas = document.getElementById('usersChart');
-                if (usersChartCanvas) {
-                    if (window.usersChart && window.usersChart.data && window.usersChart.data.datasets) {
-                        window.usersChart.data.labels = roles;
-                        window.usersChart.data.datasets[0].data = userCounts;
-                        window.usersChart.update();
-                    } else {
-                        window.usersChart = new Chart(usersChartCanvas, {
-                            type: 'doughnut',
-                            data: {
-                                labels: roles,
-                                datasets: [{
-                                    data: userCounts,
-                                    backgroundColor: ['#000', '#555', '#888']
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: { position: 'bottom' }
-                                }
-                            }
-                        });
-                    }
-                }
-                
-                const matchesTable = document.getElementById('recent-matches');
-                const recentMatches = data.recent_matches || [];
-                if (recentMatches.length === 0) {
-                    matchesTable.innerHTML = `<tr><td colspan="5" class="text-center">No recent matches found</td></tr>`;
-                } else {
-                    matchesTable.innerHTML = recentMatches.map(match => `
-                        <tr>
-                            <td>${match.username || 'Unknown'}</td>
-                            <td>${match.filename || 'Unknown'}</td>
-                            <td>${typeof match.similarity === 'number' ? (match.similarity * 100).toFixed(1) : 'N/A'}%</td>
-                            <td>${match.timestamp ? new Date(match.timestamp).toLocaleString() : 'N/A'}</td>
-                            <td>
-                                <button class="btn btn-xs btn-ghost">View</button>
-                                <button class="btn btn-xs btn-ghost text-error">Flag</button>
-                            </td>
-                        </tr>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('Analytics error:', error);
-                alert('Failed to load analytics data: ' + error.message);
-            }
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="card shadow">
+            <div class="card-body">
+              <h2 class="card-title">Scan Activity</h2>
+              <div class="chart-container">
+                <canvas id="scansChart"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card shadow">
+            <div class="card-body">
+              <h2 class="card-title">User Distribution</h2>
+              <div class="chart-container">
+                <canvas id="usersChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card shadow">
+          <div class="card-body">
+            <h2 class="card-title">Recent Matches</h2>
+            <div class="overflow-x-auto">
+              <table class="table table-zebra">
+                <thead>
+                  <tr>
+                    <th>User</th>
+                    <th>Document</th>
+                    <th>Similarity</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-matches">
+                  <!-- Will be populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- User Management Tab -->
+      <div id="user-management-tab" class="tab-content">
+        <h1 class="text-2xl font-bold mb-6">User Management</h1>
+        <div class="card shadow">
+          <div class="card-body">
+            <div class="overflow-x-auto">
+              <table class="table table-zebra">
+                <thead>
+                  <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Credits</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="user-list">
+                  <!-- Will be populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Documents Tab -->
+      <div id="documents-tab" class="tab-content">
+        <h1 class="text-2xl font-bold mb-6">Documents</h1>
+        <div class="card shadow">
+          <div class="card-body">
+            <div class="overflow-x-auto">
+              <table class="table table-zebra">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>User</th>
+                    <th>Filename</th>
+                    <th>Upload Date</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="document-list">
+                  <!-- Will be populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Credit Requests Tab -->
+      <div id="credits-tab" class="tab-content">
+        <h1 class="text-2xl font-bold mb-6">Credit Requests</h1>
+        <div class="card shadow">
+          <div class="card-body">
+            <div class="overflow-x-auto">
+              <table class="table table-zebra">
+                <thead>
+                  <tr>
+                    <th>Request ID</th>
+                    <th>Username</th>
+                    <th>Requested</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="credit-requests-list">
+                  <!-- Will be populated by JavaScript -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    async function loadAnalytics() {
+      try {
+        const response = await fetch('/admin/analytics');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch analytics: ${response.status}`);
+        }
+        const data = await response.json();
+        document.getElementById('total-scans').textContent = data.total_scans || 0;
+        document.getElementById('active-users').textContent = data.active_users || 0;
+        document.getElementById('pending-credits').textContent = data.pending_credits || 0;
+        
+        const timelineData = data.scan_timeline || [];
+        const labels = timelineData.map(entry => new Date(entry.date).toLocaleDateString());
+        const counts = timelineData.map(entry => entry.count);
+        
+        const scansChartCanvas = document.getElementById('scansChart');
+        if (scansChartCanvas) {
+          if (window.scansChart && window.scansChart.data && window.scansChart.data.datasets) {
+            window.scansChart.data.labels = labels;
+            window.scansChart.data.datasets[0].data = counts;
+            window.scansChart.update();
+          } else {
+            window.scansChart = new Chart(scansChartCanvas, {
+              type: 'line',
+              data: {
+                labels: labels,
+                datasets: [{
+                  label: 'Daily Scans',
+                  data: counts,
+                  borderColor: '#000',
+                  tension: 0.1
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false
+              }
+            });
+          }
         }
         
-        document.addEventListener('DOMContentLoaded', () => {
-            loadAnalytics();
-            setInterval(loadAnalytics, 30000);
-            
-            document.getElementById('logout-btn').addEventListener('click', async () => {
-                try {
-                    const response = await fetch('/auth/logout', { method: 'POST' });
-                    if (response.ok) {
-                        window.location.href = '/page/login';
-                    } else {
-                        alert('Logout failed');
-                    }
-                } catch (error) {
-                    alert('Network error during logout');
+        const userDistribution = data.user_distribution || [];
+        const roles = userDistribution.map(u => u.role);
+        const userCounts = userDistribution.map(u => u.count);
+        
+        const usersChartCanvas = document.getElementById('usersChart');
+        if (usersChartCanvas) {
+          if (window.usersChart && window.usersChart.data && window.usersChart.data.datasets) {
+            window.usersChart.data.labels = roles;
+            window.usersChart.data.datasets[0].data = userCounts;
+            window.usersChart.update();
+          } else {
+            window.usersChart = new Chart(usersChartCanvas, {
+              type: 'doughnut',
+              data: {
+                labels: roles,
+                datasets: [{
+                  data: userCounts,
+                  backgroundColor: ['#000', '#555', '#888']
+                }]
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { position: 'bottom' }
                 }
+              }
             });
+          }
+        }
+        
+        const matchesTable = document.getElementById('recent-matches');
+        const recentMatches = data.recent_matches || [];
+        if (recentMatches.length === 0) {
+          matchesTable.innerHTML = `<tr><td colspan="5" class="text-center">No recent matches found</td></tr>`;
+        } else {
+          matchesTable.innerHTML = recentMatches.map(match => `
+            <tr>
+              <td>${match.username || 'Unknown'}</td>
+              <td>${match.filename || 'Unknown'}</td>
+              <td>${typeof match.similarity === 'number' ? (match.similarity * 100).toFixed(1) : 'N/A'}%</td>
+              <td>${match.timestamp ? new Date(match.timestamp).toLocaleString() : 'N/A'}</td>
+              <td>
+                <button class="btn btn-xs btn-ghost">View</button>
+                <button class="btn btn-xs btn-ghost text-error">Flag</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Analytics error:', error);
+        alert('Failed to load analytics data: ' + error.message);
+      }
+    }
+
+    async function loadCreditRequests() {
+      try {
+        const response = await fetch('/admin/credit-requests');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch credit requests: ${response.status}`);
+        }
+        const data = await response.json();
+        const requestsList = document.getElementById('credit-requests-list');
+        
+        if (data.requests.length === 0) {
+          requestsList.innerHTML = `<tr><td colspan="5" class="text-center">No credit requests found</td></tr>`;
+        } else {
+          requestsList.innerHTML = data.requests.map(request => `
+            <tr>
+              <td>${request.id}</td>
+              <td>${request.username}</td>
+              <td>${new Date(request.requested_at).toLocaleString()}</td>
+              <td><span class="badge ${request.status === 'pending' ? 'bg-yellow-500' : (request.status === 'approved' ? 'bg-green-500' : 'bg-red-500')}">${request.status}</span></td>
+              <td>
+                ${request.status === 'pending' ? `
+                  <button class="btn btn-xs btn-success approve-btn" data-id="${request.id}">Approve</button>
+                  <button class="btn btn-xs btn-error reject-btn" data-id="${request.id}">Reject</button>
+                ` : 'Processed'}
+              </td>
+            </tr>
+          `).join('');
+          
+          // Add event listeners to approval/rejection buttons
+          document.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', () => handleCreditRequest(btn.dataset.id, 'approve'));
+          });
+          
+          document.querySelectorAll('.reject-btn').forEach(btn => {
+            btn.addEventListener('click', () => handleCreditRequest(btn.dataset.id, 'reject'));
+          });
+        }
+      } catch (error) {
+        console.error('Credit requests error:', error);
+        alert('Failed to load credit requests: ' + error.message);
+      }
+    }
+    
+    async function loadUsers() {
+      try {
+        const response = await fetch('/admin/users');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch users: ${response.status}`);
+        }
+        const data = await response.json();
+        const usersList = document.getElementById('user-list');
+        
+        if (data.users.length === 0) {
+          usersList.innerHTML = `<tr><td colspan="5" class="text-center">No users found</td></tr>`;
+        } else {
+          usersList.innerHTML = data.users.map(user => `
+            <tr>
+              <td>${user.username}</td>
+              <td>${user.role}</td>
+              <td>${user.credits}</td>
+              <td>${new Date(user.created_at).toLocaleDateString()}</td>
+              <td>
+                <button class="btn btn-xs btn-ghost">View</button>
+                <button class="btn btn-xs btn-ghost text-warning">Edit</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Users error:', error);
+        alert('Failed to load users: ' + error.message);
+      }
+    }
+    
+    async function loadDocuments() {
+      try {
+        const response = await fetch('/admin/documents');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch documents: ${response.status}`);
+        }
+        const data = await response.json();
+        const documentsList = document.getElementById('document-list');
+        
+        if (data.documents.length === 0) {
+          documentsList.innerHTML = `<tr><td colspan="5" class="text-center">No documents found</td></tr>`;
+        } else {
+          documentsList.innerHTML = data.documents.map(doc => `
+            <tr>
+              <td>${doc.id}</td>
+              <td>${doc.username}</td>
+              <td>${doc.filename}</td>
+              <td>${new Date(doc.scanned_at).toLocaleString()}</td>
+              <td>
+                <button class="btn btn-xs btn-ghost">View</button>
+                <button class="btn btn-xs btn-ghost text-error">Delete</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+      } catch (error) {
+        console.error('Documents error:', error);
+        alert('Failed to load documents: ' + error.message);
+      }
+    }
+    
+    async function handleCreditRequest(requestId, action) {
+        try {
+            // Show loading state
+            const btn = document.querySelector(`.${action}-btn[data-id="${requestId}"]`);
+            const originalText = btn.textContent;
+            btn.textContent = 'Processing...';
+            btn.disabled = true;
+            
+            const response = await fetch('/admin/credit-requests/process', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ 
+                request_id: parseInt(requestId), 
+                action: action 
+            })
+            });
+            
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+            throw new Error(`Expected JSON response but got ${contentType}`);
+            }
+            
+            let data;
+            try {
+            data = await response.json();
+            } catch (parseError) {
+            console.error('JSON parse error:', parseError);
+            const rawText = await response.text();
+            console.error('Raw response:', rawText);
+            throw new Error(`Failed to parse JSON response: ${parseError.message}`);
+            }
+            
+            if (!response.ok) {
+            throw new Error(data.error || `Failed to process request: ${response.status}`);
+            }
+            
+            alert(data.message || 'Request processed successfully');
+            
+            loadCreditRequests();
+            loadAnalytics();
+        } catch (error) {
+            console.error('Process credit request error:', error);
+            alert(error.message || 'Failed to process request');
+            
+            const btn = document.querySelector(`.${action}-btn[data-id="${requestId}"]`);
+            if (btn) {
+            btn.textContent = action === 'approve' ? 'Approve' : 'Reject';
+            btn.disabled = false;
+            }
+        }
+    }
+
+    // Tab navigation
+    function setupTabs() {
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.preventDefault();
+          
+          // Remove active class from all tabs and links
+          document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+          document.querySelectorAll('.nav-link').forEach(navLink => navLink.classList.remove('active'));
+          
+          // Add active class to selected tab and link
+          const targetId = link.dataset.target;
+          document.getElementById(targetId).classList.add('active');
+          link.classList.add('active');
+          
+          // Load data for the selected tab
+          if (targetId === 'credits-tab') {
+            loadCreditRequests();
+          } else if (targetId === 'user-management-tab') {
+            loadUsers();
+          } else if (targetId === 'documents-tab') {
+            loadDocuments();
+          }
         });
-    </script>
+      });
+    }
+
+    // Attach a logout handler
+    document.addEventListener('DOMContentLoaded', () => {
+      // Setup tab navigation
+      setupTabs();
+      
+      // Load analytics data
+      loadAnalytics();
+      setInterval(loadAnalytics, 30000);
+
+      // Listen for logout button
+      const logoutBtn = document.getElementById('logout-btn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          try {
+            const response = await fetch('/auth/logout', { method: 'POST' });
+            if (response.ok) {
+              window.location.href = '/page/login';
+            } else {
+              alert('Logout failed');
+            }
+          } catch (error) {
+            alert('Network error while logging out');
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

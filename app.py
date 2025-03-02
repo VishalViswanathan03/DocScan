@@ -6,7 +6,7 @@ from utils.auth import (
     update_user_info, change_password
 )
 from utils.scanner import scan_document, get_matches
-from utils.credits import request_credits
+from utils.credits import request_credits, approve_credit_request, reject_credit_request
 import os
 from werkzeug.utils import secure_filename
 
@@ -197,7 +197,6 @@ def user_update_put():
     if 'username' not in session:
         return jsonify({"error": "Not logged in"}), 401
 
-    # Use request.form if you're doing method override or request.data if raw JSON, etc.
     data = request.form
     result, status = update_user_info(session['username'], data)
     return jsonify(result), status
@@ -256,6 +255,150 @@ def upload():
     except Exception as e:
         print(f"Upload Error: {e}")
         return jsonify({"error": str(e)}), 500
+
+@app.route('/admin/credit-requests', methods=['GET'])
+def admin_credit_requests():
+    """
+    Get all credit requests
+    ---
+    responses:
+      200:
+        description: List of credit requests
+      403:
+        description: Unauthorized
+    """
+    if 'username' not in session or session.get('role') != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    conn = get_db()
+    cursor = conn.execute('''
+        SELECT cr.id, cr.username, cr.requested_at, cr.status
+        FROM credit_requests cr
+        ORDER BY cr.requested_at DESC
+    ''')
+    
+    requests = [dict(row) for row in cursor.fetchall()]
+    
+    return jsonify({"requests": requests})
+
+@app.route('/admin/credit-requests/process', methods=['POST'])
+def admin_process_credit_request():
+    """
+    Process a credit request (approve/reject)
+    ---
+    parameters:
+      - name: request_id
+        in: body
+        type: integer
+        required: true
+      - name: action
+        in: body
+        type: string
+        required: true
+        enum: [approve, reject]
+    responses:
+      200:
+        description: Request processed successfully
+      400:
+        description: Invalid request
+      403:
+        description: Unauthorized
+      404:
+        description: Request not found
+    """
+    if 'username' not in session or session.get('role') != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        data = request.get_json(force=True, silent=True)
+        
+        if data is None:
+            if request.form and 'request_id' in request.form and 'action' in request.form:
+                data = {
+                    'request_id': request.form.get('request_id'),
+                    'action': request.form.get('action')
+                }
+            else:
+                app.logger.error(f"Invalid request content: {request.data}")
+                return jsonify({"error": "Missing required parameters or invalid JSON"}), 400
+        
+        if not data or 'request_id' not in data or 'action' not in data:
+            return jsonify({"error": "Missing required parameters"}), 400
+        
+        try:
+            request_id = int(data['request_id'])
+        except (ValueError, TypeError):
+            return jsonify({"error": "Invalid request_id format"}), 400
+        
+        action = data['action']
+        
+        if action not in ['approve', 'reject']:
+            return jsonify({"error": "Invalid action"}), 400
+        
+        app.logger.info(f"Processing credit request {request_id} with action {action}")
+        
+        if action == 'approve':
+            success, message = approve_credit_request(request_id)
+        else:
+            success, message = reject_credit_request(request_id)
+        
+        if not success:
+            return jsonify({"error": message}), 404
+        
+        return jsonify({"success": True, "message": message})
+    except Exception as e:
+        app.logger.error(f"Error in credit request processing: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
+
+@app.route('/admin/users', methods=['GET'])
+def admin_users():
+    """
+    Get all users
+    ---
+    responses:
+      200:
+        description: List of users
+      403:
+        description: Unauthorized
+    """
+    if 'username' not in session or session.get('role') != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    conn = get_db()
+    cursor = conn.execute('''
+        SELECT username, role, credits, created_at
+        FROM users
+        ORDER BY created_at DESC
+    ''')
+    
+    users = [dict(row) for row in cursor.fetchall()]
+    
+    return jsonify({"users": users})
+
+@app.route('/admin/documents', methods=['GET'])
+def admin_documents():
+    """
+    Get all documents
+    ---
+    responses:
+      200:
+        description: List of documents
+      403:
+        description: Unauthorized
+    """
+    if 'username' not in session or session.get('role') != 'admin':
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    conn = get_db()
+    cursor = conn.execute('''
+        SELECT id, username, filename, scanned_at
+        FROM documents
+        ORDER BY scanned_at DESC
+    ''')
+    
+    documents = [dict(row) for row in cursor.fetchall()]
+    
+    return jsonify({"documents": documents})
     
 @app.route('/health')
 def health():
