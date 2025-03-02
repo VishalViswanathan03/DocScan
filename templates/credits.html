@@ -44,7 +44,10 @@
     // Fetch user credits on page load
     document.addEventListener('DOMContentLoaded', async function() {
       try {
-        const response = await fetch('/user/profile');
+        const response = await fetch('/user/profile', {
+        credentials: 'include'
+        });
+
         if (response.ok) {
           const data = await response.json();
           if (data.profile && data.profile.credits !== undefined) {

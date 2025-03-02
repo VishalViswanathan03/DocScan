@@ -11,7 +11,7 @@ import os
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = 'replace_with_strong_secret_key'
+app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default_fallback_key')
 
 app.config['UPLOAD_FOLDER'] = os.path.join('data', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  

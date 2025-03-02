@@ -25,11 +25,11 @@ def init_db():
             phone TEXT,
             first_name TEXT,
             last_name TEXT,
-            dob TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            dob TEXT
         )
     ''')
 
+    # DOCUMENTS table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS documents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -40,18 +40,17 @@ def init_db():
     )
 ''')
 
+    # CREDIT REQUESTS table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS credit_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            amount INTEGER DEFAULT 5,
+            username TEXT,
             status TEXT DEFAULT 'pending',
-            requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            processed_at TIMESTAMP,
-            FOREIGN KEY(username) REFERENCES users(username)
+            requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
 
+    # SCAN RESULTS table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS scan_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,6 +60,17 @@ def init_db():
             final_score REAL,
             is_similar INTEGER,
             scanned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS credit_requests (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        amount INTEGER NOT NULL,
+        status TEXT DEFAULT 'pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(username) REFERENCES users(username)
         )
     ''')
 

@@ -113,11 +113,12 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 async function loadProfile() {
     try {
-        const response = await fetch('/user/profile');
+        const response = await fetch('/user/profile', { credentials: 'include' });
         const data = await response.json();
 
         if (response.ok && data.profile) {
-            // Make sure these IDs match the HTML inputs or elements
+            localStorage.setItem('username', data.profile.username);
+
             const usernameEl = document.getElementById('username');
             const creditsEl = document.getElementById('credits');
             const phoneEl = document.getElementById('phone');
@@ -143,6 +144,7 @@ async function loadProfile() {
         showAlert('Failed to load profile', 'error');
     }
 }
+
 
 /**
  * Check if the user is authenticated on protected pages.

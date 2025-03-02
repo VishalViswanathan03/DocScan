@@ -16,10 +16,19 @@ spec:
         - name: document-scanner
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
-            - containerPort: 5000
+            - containerPort: 8080
+          env:
+            - name: FLASK_SECRET_KEY
+              value: "{{ .Values.env.FLASK_SECRET_KEY }}"
           volumeMounts:
             - name: data-volume
               mountPath: /app/data
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
       volumes:
         - name: data-volume
           persistentVolumeClaim:
