@@ -2,16 +2,13 @@ import os
 import sqlite3
 import logging
 
-# Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Define database path in persistent storage
 DB_PATH = os.path.join('data', 'document_scanner.db')
 
 def init_db():
     """Initialize the database with required tables."""
-    # Ensure the directory exists
     os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
     
     logger.info(f"Initializing database at {os.path.abspath(DB_PATH)}")
