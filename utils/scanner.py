@@ -36,7 +36,6 @@ def scan_document(username, file):
 def get_matches(username, doc_id):
     conn = get_db()
 
-    # Fetch the target document
     cursor = conn.execute('SELECT content FROM documents WHERE id = ?', (doc_id,))
     target_doc = cursor.fetchone()
     if not target_doc:

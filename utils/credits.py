@@ -6,7 +6,6 @@ def request_credits(username):
     Submit a credit request for a user.
     """
     conn = get_db()
-    # Check if user already has a pending request
     cursor = conn.execute(
         'SELECT id FROM credit_requests WHERE username = ? AND status = "pending"',
         (username,)

@@ -13,7 +13,6 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__)
 app.secret_key = 'replace_with_strong_secret_key'
 
-# Add these configurations
 app.config['UPLOAD_FOLDER'] = os.path.join('data', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -21,7 +20,6 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 swagger = Swagger(app)
 init_db()
 
-# Add this after session configuration
 @app.before_request
 def check_admin():
     if request.path.startswith('/admin') and \
@@ -39,9 +37,6 @@ def index():
     """
     return render_template('index.html')
 
-# ---------------------------
-# AUTH ROUTES
-# ---------------------------
 @app.route('/auth/register', methods=['POST'])
 def register():
     """
@@ -121,9 +116,6 @@ def logout():
     session.clear()
     return jsonify({"success": True, "message": "Logged out"}), 200
 
-# ---------------------------
-# USER PROFILE & UPDATES
-# ---------------------------
 @app.route('/user/profile', methods=['GET'])
 def profile():
     """
@@ -201,9 +193,6 @@ def user_update_put():
     result, status = update_user_info(session['username'], data)
     return jsonify(result), status
 
-# ---------------------------
-# DOCUMENT UPLOAD & MATCH
-# ---------------------------
 @app.route('/upload', methods=['POST'])
 def upload():
     """
@@ -427,7 +416,6 @@ def matches(doc_id):
 
     return render_template('matches.html')
 
-# NEW ENDPOINT: API endpoint to get match data as JSON
 @app.route('/api/matches/<int:doc_id>', methods=['GET'])
 def get_matches_api(doc_id):
     """
@@ -477,9 +465,6 @@ def admin_dashboard():
         return redirect('/page/login')
     return render_template('dashboard.html')
 
-# ---------------------------
-# ADMIN ANALYTICS
-# ---------------------------
 @app.route('/admin/analytics', methods=['GET'])
 def admin_analytics():
     """
@@ -496,11 +481,9 @@ def admin_analytics():
     
     conn = get_db()
     
-    # Total scans (documents)
     cursor = conn.execute('SELECT COUNT(*) as total_scans FROM documents')
     total_scans = cursor.fetchone()["total_scans"]
     
-    # Active users (using documents with recent timestamps as a proxy)
     cursor = conn.execute('''
         SELECT COUNT(DISTINCT username) as active_users 
         FROM documents 
@@ -508,7 +491,6 @@ def admin_analytics():
     ''')
     active_users = cursor.fetchone()["active_users"]
     
-    # Pending credit requests
     cursor = conn.execute('''
         SELECT COUNT(*) as pending_credits 
         FROM credit_requests 
@@ -516,7 +498,6 @@ def admin_analytics():
     ''')
     pending_credits = cursor.fetchone()["pending_credits"]
     
-    # Scan timeline (last 7 days)
     cursor = conn.execute('''
         SELECT date(scanned_at) as date, COUNT(*) as count 
         FROM documents 
@@ -526,7 +507,6 @@ def admin_analytics():
     ''')
     scan_timeline = [dict(row) for row in cursor.fetchall()]
     
-    # User distribution
     cursor = conn.execute('''
         SELECT role, COUNT(*) as count 
         FROM users 
@@ -534,7 +514,6 @@ def admin_analytics():
     ''')
     user_distribution = [dict(row) for row in cursor.fetchall()]
     
-    # Recent matches
     cursor = conn.execute('''
         SELECT sr.id, sr.username, sr.doc_id, sr.matched_doc_id, sr.final_score as similarity,
                sr.scanned_at as timestamp, d.filename
@@ -563,9 +542,6 @@ def admin_analytics():
         "recent_matches": recent_matches
     })
 
-# ---------------------------
-# TEMPLATES
-# ---------------------------
 @app.route('/page/<name>')
 def serve_page(name):
     """

@@ -30,7 +30,6 @@ def init_db():
         )
     ''')
 
-    # DOCUMENTS table
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS documents (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +40,6 @@ def init_db():
     )
 ''')
 
-    # CREDIT REQUESTS table - fixed version
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS credit_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +52,6 @@ def init_db():
         )
     ''')
 
-    # SCAN RESULTS table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS scan_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
