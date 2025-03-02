@@ -1,4 +1,0 @@
-cat
-cat is not a dog.
-Dogs are cool.
-Dog is good!

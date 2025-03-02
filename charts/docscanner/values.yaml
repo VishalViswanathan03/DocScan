@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: yourdockerhubusername/document-scanner
-  tag: latest
+  repository: vishalvn2003492/docscan
+  tag: v1
 
 service:
   type: ClusterIP
