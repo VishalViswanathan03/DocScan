@@ -282,11 +282,35 @@ def matches(doc_id):
     if 'username' not in session:
         return jsonify({"error": "Not logged in"}), 401
 
+    return render_template('matches.html')
+
+# NEW ENDPOINT: API endpoint to get match data as JSON
+@app.route('/api/matches/<int:doc_id>', methods=['GET'])
+def get_matches_api(doc_id):
+    """
+    Document Matching API
+    ---
+    parameters:
+      - name: doc_id
+        in: path
+        type: integer
+        required: true
+    responses:
+      200:
+        description: JSON data of matching documents
+      401:
+        description: Not logged in
+      404:
+        description: Document not found
+    """
+    if 'username' not in session:
+        return jsonify({"error": "Not logged in"}), 401
+
     result = get_matches(session['username'], doc_id)
     if isinstance(result, dict) and 'matches' in result:
-        return render_template('matches.html', matches=result['matches'])
+        return jsonify(result)
     else:
-        return jsonify(result), 404
+        return jsonify({"error": "Document not found"}), 404
 
 @app.route('/credits/request', methods=['POST'])
 def credits_request():

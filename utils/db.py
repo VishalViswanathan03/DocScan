@@ -63,6 +63,8 @@ def init_db():
         )
     ''')
 
+    # CREDIT REQUESTS table updated with more fields
+    # Removed the duplicate CREATE TABLE statement
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS credit_requests (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -106,6 +106,29 @@
       font-weight: 500;
       padding: 0;
     }
+
+    .alert {
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 0.5rem;
+      text-align: center;
+    }
+
+    .alert-success {
+      background-color: #d1fae5;
+      color: #047857;
+    }
+
+    .alert-error {
+      background-color: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .loading {
+      text-align: center;
+      margin: 2rem 0;
+      color: var(--gray);
+    }
   </style>
 </head>
 <body>
@@ -115,46 +138,94 @@
       <div class="nav-links">
         <a href="/">Home</a>
         <a href="/page/upload">Upload</a>
-        <a href="#" id="logout-btn">Logout</a>
+        <a href="/page/profile">Profile</a>
+        <button id="logout-btn">Logout</button>
       </div>
     </div>
   </nav>
   <div class="container">
     <div class="card">
       <h2>Document Matches</h2>
-      <div id="matches-list" class="matches-container">
-        <!-- Sample match cards -->
-        <div class="match-card similar">
-          <h4>cat.txt</h4>
-          <p>Similarity: 100.0%</p>
-          <p>Status: Similar</p>
-        </div>
-        <div class="match-card similar">
-          <h4>cat.txt</h4>
-          <p>Similarity: 100.0%</p>
-          <p>Status: Similar</p>
-        </div>
-        <div class="match-card unique">
-          <h4>dogs1.txt</h4>
-          <p>Similarity: 2.0%</p>
-          <p>Status: Not Similar</p>
-        </div>
+      <div id="loading" class="loading">Loading matches...</div>
+      <div id="matches-list" class="matches-container" style="display: none;">
       </div>
     </div>
   </div>
   
   <script>
-    document.getElementById('logout-btn')?.addEventListener('click', async (e) => {
-      e.preventDefault();
+    document.addEventListener('DOMContentLoaded', function() {
+      loadMatches();
+      
+      document.getElementById('logout-btn')?.addEventListener('click', async (e) => {
+        e.preventDefault();
+        try {
+          const response = await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
+          if (response.ok) {
+            window.location.href = '/page/login';
+          }
+        } catch (error) {
+          showAlert('Error logging out', 'error');
+        }
+      });
+    });
+
+    async function loadMatches() {
       try {
-        const response = await fetch('/auth/logout', { method: 'POST', credentials: 'include' });
-        if (response.ok) {
-          window.location.href = '/page/login';
+        const loadingEl = document.getElementById('loading');
+        const matchesList = document.getElementById('matches-list');
+        
+        const pathParts = window.location.pathname.split('/');
+        const docId = pathParts[pathParts.length - 1];
+        
+        const response = await fetch(`/api/matches/${docId}`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          },
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.matches) {
+          loadingEl.style.display = 'none';
+          matchesList.style.display = 'grid';
+          
+          if (data.matches.length > 0) {
+            matchesList.innerHTML = data.matches.map(match => `
+              <div class="match-card ${match.is_similar ? 'similar' : 'unique'}">
+                <h4>${match.filename}</h4>
+                <p>Similarity: ${(match.similarity * 100).toFixed(1)}%</p>
+                <p>Status: ${match.is_similar ? 'Similar' : 'Not Similar'}</p>
+              </div>
+            `).join('');
+          } else {
+            matchesList.innerHTML = '<p>No matches found for this document.</p>';
+          }
+        } else {
+          loadingEl.style.display = 'none';
+          showAlert(data.error || 'Failed to load matches', 'error');
         }
       } catch (error) {
-        alert('Error logging out');
+        console.error('Error loading matches:', error);
+        document.getElementById('loading').style.display = 'none';
+        showAlert('Network error occurred while loading matches', 'error');
       }
-    });
+    }
+
+    function showAlert(message, type = 'success') {
+      const existingAlerts = document.querySelectorAll('.alert');
+      existingAlerts.forEach(alert => alert.remove());
+      
+      const alertEl = document.createElement('div');
+      alertEl.className = `alert alert-${type === 'error' ? 'error' : 'success'}`;
+      alertEl.textContent = message;
+      
+      const card = document.querySelector('.card');
+      card.insertBefore(alertEl, card.firstChild.nextSibling);
+      
+      setTimeout(() => alertEl.remove(), 3000);
+    }
   </script>
 </body>
 </html>
