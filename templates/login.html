@@ -21,12 +21,10 @@
     <div class="card">
       <h2 style="margin-bottom: 1.5rem;">Welcome Back</h2>
 
-      <!-- This alert can be shown if the user is redirected from a successful registration -->
       <div id="registrationSuccess" class="alert alert-success" style="display: none;">
         Registration successful! Please login.
       </div>
 
-      <!-- The key is to remove a direct action or prevent the default submission -->
       <form id="loginForm">
         <div class="form-group">
           <label>Username</label>
@@ -49,29 +47,25 @@
 
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script>
-    // If redirected from registration, show success alert
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.has('new_user')) {
       document.getElementById('registrationSuccess').style.display = 'block';
     }
 
-    // Handle the login form via JavaScript fetch
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();  // Prevent default form submission
+      e.preventDefault();  
       const formData = new FormData(e.target);
 
       try {
         const response = await fetch('/auth/login', {
           method: 'POST',
-          credentials: 'include',  // Ensure cookies are sent/received
+          credentials: 'include',  
           body: formData
         });
         const data = await response.json();
 
         if (response.ok) {
-          // Save the username in localStorage so client-side auth checks pass
           localStorage.setItem('username', formData.get('username'));
-          // Redirect based on role
           if (data.role === 'admin') {
             window.location.href = '/admin/dashboard';
           } else {

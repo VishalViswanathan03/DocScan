@@ -41,7 +41,6 @@
   
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script>
-    // Fetch user credits on page load
     document.addEventListener('DOMContentLoaded', async function() {
       try {
         const response = await fetch('/user/profile', {
@@ -60,7 +59,6 @@
         console.error('Error fetching user profile:', error);
       }
       
-      // Set up credit request form
       document.getElementById('credit-request-form').addEventListener('submit', async function(e) {
         e.preventDefault();
         

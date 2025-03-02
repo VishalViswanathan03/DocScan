@@ -50,7 +50,6 @@
     </div>
   </div>
 
-  <!-- Registration Success Modal -->
   <div id="successModal" class="modal">
     <div class="modal-content">
       <div class="modal-body">
@@ -63,7 +62,6 @@
 
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   <script>
-    // Registration specific handling
     document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
@@ -76,11 +74,9 @@
         
         const data = await response.json();
         if (response.ok) {
-          // Show modal
           const modal = document.getElementById('successModal');
           modal.style.display = 'block';
           
-          // Start countdown
           let seconds = 3;
           const countdownEl = document.getElementById('countdown');
           const countdownInterval = setInterval(() => {
