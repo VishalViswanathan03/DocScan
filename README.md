@@ -1,4 +1,4 @@
-# ScanDoc
+# DocScan
 ScanDoc is a comprehensive full stack web application that Scans Documents for similarity with an inbuilt credit system.
 
 ## System Architecture:
