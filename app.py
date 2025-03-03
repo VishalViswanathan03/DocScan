@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, session, jsonify, redirect
+from flask import Flask, request, render_template, session, jsonify, redirect, abort
 from flasgger import Swagger
 from utils.db import init_db, get_db
 from utils.auth import (
@@ -9,6 +9,7 @@ from utils.scanner import scan_document, get_matches
 from utils.credits import request_credits, approve_credit_request, reject_credit_request
 import os
 from werkzeug.utils import secure_filename
+from jinja2 import TemplateNotFound
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default_fallback_key')
@@ -545,12 +546,16 @@ def admin_analytics():
         "recent_matches": recent_matches
     })
 
+ALLOWED_PAGES = {"login", "register", "credits", "profile", "upload", "dashboard", "index"}
+
 @app.route('/page/<name>')
 def serve_page(name):
-    """
-    Render an HTML template by name, e.g. /page/login -> login.html
-    """
-    return render_template(f"{name}.html")
+    if name not in ALLOWED_PAGES:
+        abort(404)
+    try:
+        return render_template(f"{name}.html")
+    except TemplateNotFound:
+        abort(404)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

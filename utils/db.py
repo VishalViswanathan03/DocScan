@@ -64,10 +64,13 @@ def init_db():
         CREATE TABLE IF NOT EXISTS credit_requests (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT NOT NULL,
+            amount INTEGER DEFAULT 5,
             requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             status TEXT DEFAULT 'pending',
+            processed_at TIMESTAMP,
             FOREIGN KEY (username) REFERENCES users(username)
         )
+
         ''')
         
         cursor = conn.execute('SELECT COUNT(*) FROM users WHERE username = ?', ('admin',))
