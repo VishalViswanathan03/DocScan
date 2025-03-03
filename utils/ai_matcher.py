@@ -5,6 +5,17 @@ from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.stem import PorterStemmer
 
+def initialize_nltk():
+    """Ensure all required NLTK data is downloaded"""
+    required_resources = ['punkt', 'stopwords', 'punkt_tab']
+    for resource in required_resources:
+        try:
+            nltk.data.find(f'tokenizers/{resource}')
+        except LookupError:
+            nltk.download(resource)
+
+initialize_nltk()
+
 try:
     from sentence_transformers import SentenceTransformer
     HAVE_TRANSFORMERS = True
@@ -16,13 +27,6 @@ except ImportError:
         HAVE_SKLEARN = True
     except ImportError:
         HAVE_SKLEARN = False
-
-try:
-    nltk.data.find('tokenizers/punkt')
-    nltk.data.find('corpora/stopwords')
-except LookupError:
-    nltk.download('punkt')
-    nltk.download('stopwords')
 
 _model = None
 
