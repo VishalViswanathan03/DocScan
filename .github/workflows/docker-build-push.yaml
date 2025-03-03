@@ -33,7 +33,7 @@ jobs:
           images: ${{ secrets.DOCKER_USERNAME }}/docscan
           tags: |
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
-            type=raw,value=$(echo "${GITHUB_REF_NAME}" | sed 's/release\///'),enable=${{ startsWith(github.ref, 'refs/tags/release/') }}
+            type=ref,event=tag,prefix=,suffix=,pattern=release/(.*)
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
