@@ -1,4 +1,7 @@
 import os
+import re
+from collections import Counter
+import math
 from utils.db import get_db
 from utils.ai_matcher import ai_match
 from werkzeug.utils import secure_filename
@@ -15,8 +18,16 @@ def scan_document(username, file):
         
         file.save(file_path)
         
-        with open(file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+        except UnicodeDecodeError:
+            try:
+                with open(file_path, 'r', encoding='latin-1') as f:
+                    content = f.read()
+            except Exception:
+                with open(file_path, 'rb') as f:
+                    content = f.read().decode('utf-8', errors='replace')
 
         cursor = conn.execute(
             'INSERT INTO documents (username, filename, content) VALUES (?, ?, ?)',
@@ -36,12 +47,13 @@ def scan_document(username, file):
 def get_matches(username, doc_id):
     conn = get_db()
 
-    cursor = conn.execute('SELECT content FROM documents WHERE id = ?', (doc_id,))
+    cursor = conn.execute('SELECT content, filename FROM documents WHERE id = ?', (doc_id,))
     target_doc = cursor.fetchone()
     if not target_doc:
         return {"error": "Document not found"}, 404
 
     target_content = target_doc["content"]
+    target_filename = target_doc["filename"]
 
     cursor = conn.execute(
         'SELECT id, filename, content FROM documents WHERE username = ? AND id != ?',
@@ -51,9 +63,13 @@ def get_matches(username, doc_id):
 
     matches = []
     for doc in docs:
-        sim_score = calculate_similarity(target_content, doc["content"])
+        jaccard_sim = calculate_similarity(target_content, doc["content"])
+        cosine_sim = calculate_cosine_similarity(target_content, doc["content"])
+        
         ai_score = ai_match(target_content, doc["content"])
-        final_score = max(sim_score, ai_score)
+        
+        basic_score = (jaccard_sim + cosine_sim) / 2
+        final_score = max(basic_score, ai_score)
 
         is_similar = 1 if final_score >= 0.5 else 0
 
@@ -66,16 +82,78 @@ def get_matches(username, doc_id):
             "id": doc["id"],
             "filename": doc["filename"],
             "similarity": round(final_score, 2),
-            "is_similar": is_similar
+            "is_similar": is_similar,
+            "metrics": {
+                "jaccard": round(jaccard_sim, 2),
+                "cosine": round(cosine_sim, 2),
+                "ai": round(ai_score, 2)
+            }
         })
 
+    matches = sorted(matches, key=lambda x: x["similarity"], reverse=True)
+    
     conn.commit()
-    return {"matches": matches}
+    return {"matches": matches, "source": target_filename}
 
 
 def calculate_similarity(doc1, doc2):
+    """
+    Calculate Jaccard similarity between two documents
+    (improved from the original function)
+    """
+    doc1 = preprocess_text(doc1)
+    doc2 = preprocess_text(doc2)
+    
     words1 = set(doc1.split())
     words2 = set(doc2.split())
+    
     if not words1 or not words2:
         return 0
-    return len(words1 & words2) / len(words1 | words2)
+    
+    intersection = len(words1 & words2)
+    union = len(words1 | words2)
+    
+    return intersection / union if union > 0 else 0
+
+
+def calculate_cosine_similarity(doc1, doc2):
+    """
+    Calculate cosine similarity between two documents using term frequency
+    """
+    doc1 = preprocess_text(doc1)
+    doc2 = preprocess_text(doc2)
+    
+    # Tokenize
+    words1 = doc1.split()
+    words2 = doc2.split()
+    
+    if not words1 or not words2:
+        return 0
+    
+    tf1 = Counter(words1)
+    tf2 = Counter(words2)
+    
+    all_words = set(words1).union(set(words2))
+    
+    dot_product = sum(tf1.get(word, 0) * tf2.get(word, 0) for word in all_words)
+    magnitude1 = math.sqrt(sum(tf1.get(word, 0) ** 2 for word in all_words))
+    magnitude2 = math.sqrt(sum(tf2.get(word, 0) ** 2 for word in all_words))
+    
+    if magnitude1 == 0 or magnitude2 == 0:
+        return 0
+    
+    return dot_product / (magnitude1 * magnitude2)
+
+
+def preprocess_text(text):
+    """
+    Basic text preprocessing for similarity calculation
+    """
+    if not isinstance(text, str):
+        return ""
+    
+    text = re.sub(r'[^\w\s]', ' ', text.lower())
+    
+    text = re.sub(r'\s+', ' ', text).strip()
+    
+    return text
