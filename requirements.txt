@@ -3,3 +3,8 @@ flasgger
 werkzeug
 sqlalchemy
 flask-cors
+nltk
+scikit-learn
+numpy
+sentence-transformers
+torch
