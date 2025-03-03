@@ -4,10 +4,10 @@ on:
   push:
     branches: [main, master]
     tags:
-      - 'release/*'  # Trigger on release tags (e.g., release/v1)
+      - 'release/*'  
   pull_request:
     branches: [main, master]
-  workflow_dispatch:  # Allows manual triggering from GitHub UI
+  workflow_dispatch:  
 
 jobs:
   build-and-push:
@@ -36,7 +36,7 @@ jobs:
             type=ref,event=branch
             type=ref,event=pr
             latest
-            ${{ github.ref }}  # This will automatically include the tag for releases
+            ${{ github.ref }}  
             type=semver,pattern={{version}}
             type=sha,format=short
           
