@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: vishalvn2003492/docscan
-  tag: latest
+  tag: v1
 
 env:
   FLASK_SECRET_KEY: 'strong_secret_key'
