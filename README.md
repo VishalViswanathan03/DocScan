@@ -52,7 +52,7 @@ Credit reset functionality:
 - Every day the job is triggered, resetting the credits (Deployment instructions given below)
 
 How to deploy and test locally:
-- Methode 1
+- Method 1
   - Pre-requisites: python,pip installed locally
   - Clone the repo
   - Open terminal and cd into the repo
@@ -61,13 +61,13 @@ How to deploy and test locally:
   - pip install -r requirements.txt
   - python app.py
     
-- Methode 2
+- Method 2
   - Pre-requisites: Docker desktop installed
   - docker pull vishalvn2003492/docscan:v1
   - docker run -d -p 8080:80 vishalvn2003492/docscan:v1
   - open localhost:8080 in browser
  
-- Methode 3
+- Method 3
   - A kubernetes environment, like minikube or a kubernetes cluster
   - cd into docscanner in charts folder in repo
   - helm install doscanner . , given that the kuberneted env is accessible in cmd, powershell or equivalent
