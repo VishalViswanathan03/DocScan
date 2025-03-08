@@ -186,9 +186,6 @@ function handleFileSelect(event) {
     }
 }
 
-/**
- * Function to load matches (if this feature is used on another page).
- */
 async function loadMatches() {
     try {
         const pathParts = window.location.pathname.split('/');
